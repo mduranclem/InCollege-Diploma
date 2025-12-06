@@ -1,0 +1,102 @@
+﻿@model InCollege.Dominio.Modelos.Colegio
+
+@{
+    ViewData["Title"] = "Registrar Colegio";
+}
+
+<style>
+    body {
+        background-image: url('/interior.jpeg');
+        background-size: cover;
+        background-attachment: fixed;
+        background-color: #000;
+        color: white;
+    }
+
+    .form-card {
+        background-color: rgba(12, 12, 12, 0.95);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        padding: 40px;
+        margin-top: 30px;
+    }
+
+    .form-control {
+        background-color: rgba(255, 255, 255, 0.05);
+        border: 1px solid #444;
+        color: white;
+        height: 60px;
+        font-size: 1.2rem;
+    }
+
+    .form-label {
+        color: #ccc;
+        font-weight: 600;
+        margin-top: 10px;
+    }
+
+    .btn-green {
+        background-color: #1e6f42;
+        color: white;
+        border: none;
+        padding: 15px;
+        font-weight: bold;
+        width: 100%;
+        font-size: 1.2rem;
+        border-radius: 8px;
+        margin-top: 20px;
+    }
+
+        .btn-green:hover {
+            background-color: #145230;
+            color: white;
+        }
+</style>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h2 class="fw-bold text-white mb-4 border-start border-5 border-success ps-3">NUEVO COLEGIO</h2>
+
+            <div class="form-card">
+                <form action="/Colegios/Crear" method="post">
+
+                    <div class="mb-3">
+                        <label class="form-label">Nombre Institución</label>
+                        <input type="text" name="Nombre" class="form-control" placeholder="Ej: Colegio Nacional" required>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Dirección</label>
+                            <input type="text" name="Direccion" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Ciudad</label>
+                            <input type="text" name="Ciudad" class="form-control">
+                        </div>
+                    </div>
+
+                    <hr class="border-secondary my-4">
+                    <h5 class="text-success mb-3">Datos de Contacto</h5>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Nombre Contacto (Madre/Padre)</label>
+                            <input type="text" name="ContactoPrincipal" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Teléfono</label>
+                            <input type="text" name="Telefono" class="form-control">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-green">GUARDAR CLIENTE</button>
+                    <div class="text-center mt-3">
+                        <a href="/Home/PanelAdmin" class="text-decoration-none text-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,35 @@
+﻿@{
+    ViewData["Title"] = "Solicitud de Acceso";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4>Solicitar Acceso a InCollege</h4>
+            </div>
+            <div class="card-body">
+                <form action="/Home/RegistrarUsuario" method="post">
+                    <div class="mb-3">
+                        <label>Nombre</label>
+                        <input type="text" name="nombre" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label>Apellido</label>
+                        <input type="text" name="apellido" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label>Gmail / Correo Institucional</label>
+                        <input type="email" name="email" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label>Contraseña</label>
+                        <input type="password" name="password" class="form-control" required />
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">Enviar Solicitud</button>
+                </form>
+            </div>
+        </div>
+        <a href="/Home/Index" class="btn btn-link mt-3">Volver al Login</a>
+    </div>
+</div>

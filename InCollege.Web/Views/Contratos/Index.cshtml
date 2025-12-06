@@ -1,0 +1,232 @@
+﻿@model IEnumerable<InCollege.Dominio.Modelos.Contrato>
+
+@{
+    ViewData["Title"] = "Listado de Contratos";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+<style>
+    :root {
+        --brand-green: #1e6f42;
+        --brand-green-hover: #145230;
+        --card-bg: rgba(12, 12, 12, 0.98);
+    }
+
+    body {
+        background-image: url('/interior.jpeg');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        background-color: #000;
+        color: white;
+    }
+
+    .main-container {
+        width: 95%;
+        margin: 0 auto;
+        padding-top: 30px;
+    }
+
+    /* TARJETA DE LA TABLA */
+    .card-dark {
+        background-color: var(--card-bg);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+        overflow: hidden;
+    }
+
+    /* ENCABEZADO */
+    .header-title {
+        font-size: 2.5rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin: 0;
+        border-left: 10px solid var(--brand-green);
+        padding-left: 20px;
+    }
+
+    /* TABLA GIGANTE */
+    .table-massive {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .table-massive th {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: #aaa;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            padding: 25px;
+            text-align: left;
+            border-bottom: 4px solid #333;
+        }
+
+        .table-massive td {
+            padding: 25px;
+            font-size: 1.3rem;
+            border-bottom: 1px solid #333;
+            color: white;
+            vertical-align: middle;
+        }
+
+        .table-massive tr:hover td {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+    /* BOTONES */
+    .btn-new {
+        background-color: var(--brand-green);
+        color: white;
+        border: none;
+        font-weight: 800;
+        padding: 15px 30px;
+        font-size: 1.2rem;
+        border-radius: 8px;
+        text-decoration: none;
+    }
+
+        .btn-new:hover {
+            background-color: var(--brand-green-hover);
+            color: white;
+        }
+
+    .btn-back {
+        background-color: transparent;
+        border: 2px solid #555;
+        color: #ddd;
+        font-weight: 700;
+        padding: 15px 30px;
+        font-size: 1.2rem;
+        border-radius: 8px;
+        text-decoration: none;
+    }
+
+        .btn-back:hover {
+            border-color: white;
+            color: white;
+            background-color: #222;
+        }
+
+    /* ESTILO PARA LOS BOTONES DE ACCIÓN (LÁPIZ Y BASURA) */
+    .action-icon-btn {
+        background-color: transparent;
+        border: 1px solid #555;
+        color: #888;
+        padding: 10px 15px;
+        border-radius: 6px;
+        transition: 0.3s;
+        font-size: 1.2rem;
+    }
+
+    .btn-edit:hover {
+        border-color: #ffc107;
+        color: #ffc107;
+        background-color: rgba(255, 193, 7, 0.1);
+    }
+
+    .btn-delete:hover {
+        border-color: #dc3545;
+        color: #dc3545;
+        background-color: rgba(220, 53, 69, 0.1);
+    }
+
+</style>
+
+<div class="main-container">
+
+    <div class="d-flex justify-content-between align-items-center mb-5 p-4 card-dark">
+        <div>
+            <h1 class="header-title">CONTRATOS VIGENTES</h1>
+            <p class="text-secondary ms-4 mt-2 mb-0" style="font-size: 1.2rem;">Gestión de acuerdos comerciales</p>
+        </div>
+        <div class="d-flex gap-3">
+            <a href="/Home/PanelAdmin" class="btn-back">VOLVER</a>
+            <a href="/Contratos/Crear" class="btn-new shadow">+ NUEVO</a>
+        </div>
+    </div>
+
+    <div class="card-dark mb-5">
+        <div class="table-responsive">
+            <table class="table-massive">
+                <thead>
+                    <tr>
+                        <th class="ps-5">INSTITUCIÓN</th>
+                        <th>PRODUCTO / PACK</th>
+                        <th>CANT.</th>
+                        <th>PRECIO U.</th>
+                        <th>TOTAL EST.</th>
+                        <th>ESTADO</th>
+                        <th class="text-end pe-5">ACCIONES</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-secondary">
+                                <i class="bi bi-folder-x display-1 opacity-25"></i>
+                                <p class="fs-3 mt-3">No hay contratos registrados.</p>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-5 fw-bold text-white">@item.NombreColegio</td>
+                                <td style="color: #4ade80;">@item.NombreProducto</td>
+                                <td>@item.CantidadEgresados</td>
+                                <td>$ @item.PrecioUnitario.ToString("N0")</td>
+
+                                <td class="fw-bold text-white">$ @((item.CantidadEgresados * item.PrecioUnitario).ToString("N0"))</td>
+
+                                <td>
+                                    @if (item.Estado == "Presupuesto")
+                                    {
+                                        <span class="badge bg-secondary fs-6 px-3 py-2">Presupuesto</span>
+                                    }
+                                    else if (item.Estado == "En Producción")
+                                    {
+                                        <span class="badge bg-warning text-dark fs-6 px-3 py-2">En Taller</span>
+                                    }
+                                    else if (item.Estado == "Perdido")
+                                    {
+                                        <span class="badge bg-dark border border-secondary text-secondary fs-6 px-3 py-2">Perdido</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success fs-6 px-3 py-2">@item.Estado</span>
+                                    }
+                                </td>
+                                <td class="text-end pe-5">
+                                    <div class="d-flex justify-content-end gap-2">
+
+                                        <a href="/Contratos/Detalle/@item.Id" class="btn btn-outline-light px-3 py-2" style="font-weight:bold;">
+                                            DETALLE
+                                        </a>
+
+                                        <a href="/Contratos/Editar/@item.Id" class="action-icon-btn btn-edit" title="Editar">
+                                            <i class="bi bi-pencil-fill"></i>
+                                        </a>
+
+                                        <form action="/Contratos/Eliminar" method="post" onsubmit="return confirm('¿Eliminar este contrato? Se perderán los datos asociados.');">
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <button type="submit" class="action-icon-btn btn-delete" title="Eliminar">
+                                                <i class="bi bi-trash-fill"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>

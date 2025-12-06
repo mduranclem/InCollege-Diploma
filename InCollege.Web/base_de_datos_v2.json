@@ -1,0 +1,11 @@
+[
+  {
+    "Id": "d484a0de-e4df-456a-95d4-4e768ef6066f",
+    "Nombre": "Admin",
+    "Apellido": "Principal",
+    "Email": "admin@incollege.com",
+    "Password": "admin123",
+    "Rol": "Administrador",
+    "EstaActivo": true
+  }
+]

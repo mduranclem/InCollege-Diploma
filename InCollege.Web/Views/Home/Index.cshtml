@@ -1,0 +1,190 @@
+﻿@{
+    ViewData["Title"] = "Acceso al Sistema";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Gestión Indumentaria</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* FONDO */
+        body {
+            background-color: #1a1a1a;
+            background-image: url('/fabrica.jpeg'); /* Tu imagen de fondo */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        /* CONTENEDOR */
+        .login-wrapper {
+            height: 100%;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 8%;
+            position: relative;
+            background: linear-gradient(to right, rgba(0,0,0,0.3), rgba(0,0,0,0.6));
+        }
+
+        /* LOGO */
+        .logo-top-left {
+            position: absolute;
+            top: 30px;
+            left: 40px;
+            height: 350px; /* Tamaño del logo que ajustaste */
+            width: auto;
+            z-index: 10;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+        }
+
+        /* --- AQUÍ ESTÁN TUS CAMBIOS DE DISEÑO --- */
+        .login-card {
+            width: 740px;
+            /* CAMBIO 1: TRANSPARENCIA */
+            /* El último número (0.6) define la opacidad.
+                       1 = Sólido, 0 = Invisible. Antes era 0.85 */
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 90px 40px;
+            border-radius: 15px;
+            color: white;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.7);
+            /* Aumenté el desenfoque (blur) para que las letras se lean
+                       bien aunque el fondo sea transparente */
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255, 0.1); /* Borde sutil elegante */
+        }
+
+        .form-control {
+            background-color: rgba(255, 255, 255, 0.1); /* Inputs también semitransparentes */
+            border: 1px solid #555;
+            color: white;
+            border-radius: 8px;
+            padding: 14px;
+            font-size: 1rem;
+        }
+
+            .form-control:focus {
+                background-color: rgba(0, 0, 0, 0.5);
+                color: white;
+                border-color: #198754;
+                box-shadow: none;
+            }
+
+        .btn-custom-green {
+            background-color: #1e6f42;
+            border: none;
+            border-radius: 8px;
+            padding: 14px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            width: 100%;
+            margin-top: 25px;
+            transition: all 0.3s;
+        }
+
+            .btn-custom-green:hover {
+                background-color: #145230;
+                transform: scale(1.01);
+            }
+
+        .brand-title {
+            font-weight: 800;
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        .brand-subtitle {
+            color: #ccc;
+            font-size: 1rem;
+            margin-bottom: 30px;
+        }
+
+        /* CAMBIO 2: ESTILO PARA EL LINK DE ABAJO */
+        .link-solicitar {
+            color: #ffffff; /* Blanco puro */
+            text-decoration: none;
+            font-size: 0.9rem;
+            opacity: 0.8; /* Un pelín suave */
+            transition: 0.3s;
+        }
+
+            .link-solicitar:hover {
+                color: #1e6f42; /* Verde al pasar el mouse */
+                opacity: 1;
+                text-decoration: underline;
+            }
+
+        @@media (max-width: 992px) {
+            .login-wrapper {
+                justify-content: center;
+                padding-right: 0;
+            }
+
+            .login-card {
+                width: 90%;
+            }
+
+            .logo-top-left {
+                top: 20px;
+                left: 20px;
+                height: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-wrapper">
+
+        <img src="/logo.png" alt="Logo InCollege" class="logo-top-left">
+
+        <div class="login-card">
+            <h1 class="brand-title">Gestión Industrial</h1>
+            <p class="brand-subtitle">Sistema de Indumentaria para Egresados</p>
+
+            <form action="/Home/Login" method="post">
+                <div class="mb-4">
+                    <label class="form-label text-white">Usuario Corporativo</label>
+                    <input type="text" name="username" class="form-control" placeholder="admin@incollege.com" required>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label text-white">Contraseña</label>
+                    <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+                </div>
+
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-danger py-2">@ViewBag.Error</div>
+                }
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-custom-green text-white">INGRESAR</button>
+                </div>
+
+                <div class="text-center mt-4">
+                    <a href="/Home/Registro" class="link-solicitar">
+                        ¿Aún no tienes cuenta? Solicitar acceso
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>

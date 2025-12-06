@@ -1,0 +1,434 @@
+﻿@using InCollege.Dominio.Modelos
+@model List<Contrato>
+
+@{
+    ViewData["Title"] = "Panel de Control";
+    Layout = null; /* <--- ESTA ES LA CLAVE: Quitamos el diseño base para tomar el control total */
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Panel de Control - InCollege</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <style>
+        /* VARIABLES DE ESTILO */
+        :root {
+            --brand-green: #1e6f42;
+            --brand-green-hover: #145230;
+            --card-bg: rgba(18, 18, 18, 0.95);
+            --text-silver: #cccccc;
+        }
+
+        body {
+            background-image: url('/interior.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-color: #000;
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* CONTENEDOR PRINCIPAL (Ajustado) */
+        .dashboard-wrapper {
+            width: 95%;
+            max-width: 1600px; /* Tope máximo para que no se estire infinito */
+            margin: 0 auto; /* Centrado automático */
+            padding-top: 20px;
+            padding-bottom: 40px;
+        }
+
+        /* TARJETAS BASE */
+        .card-dark {
+            background-color: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+            border-radius: 8px;
+        }
+
+        /* 1. HEADER SUPERIOR */
+        .top-header {
+            padding: 15px 25px;
+            margin-bottom: 25px;
+        }
+
+        .main-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        .sub-title {
+            font-size: 0.9rem;
+            color: #999;
+            margin: 0;
+        }
+
+        .btn-new-contract {
+            background-color: var(--brand-green);
+            color: white;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 700;
+            padding: 10px 20px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+            .btn-new-contract:hover {
+                background-color: var(--brand-green-hover);
+                color: white;
+            }
+
+        /* 2. KPIs (Más compactos) */
+        .kpi-box {
+            background-color: rgba(25, 25, 25, 0.95);
+            border: 1px solid #444;
+            border-left: 5px solid var(--brand-green);
+            padding: 15px;
+            height: 100%;
+            min-height: 100px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transition: 0.2s;
+        }
+
+            .kpi-box:hover {
+                transform: translateY(-3px);
+                border-color: #777;
+            }
+
+        .kpi-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #aaa;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .kpi-number {
+            font-size: 2.2rem;
+            font-weight: 800;
+            line-height: 1;
+            color: white;
+        }
+
+        .kpi-icon {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            font-size: 2.5rem;
+            opacity: 0.15;
+        }
+
+        /* 3. BOTONES DE ACCIÓN */
+        .section-header {
+            padding: 15px;
+            border-bottom: 1px solid #333;
+        }
+
+        .section-title {
+            font-size: 1rem;
+            margin: 0;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .action-block {
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1px solid #444;
+            color: #eee;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-radius: 6px;
+            transition: 0.2s;
+            height: 100%;
+        }
+
+            .action-block:hover {
+                background-color: #222;
+                border-color: var(--brand-green);
+                transform: translateY(-2px);
+                color: white;
+            }
+
+            .action-block i {
+                font-size: 1.5rem;
+                color: var(--brand-green);
+                margin-right: 15px;
+                min-width: 30px;
+                text-align: center;
+            }
+
+        .action-text {
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            line-height: 1.2;
+            color: white;
+        }
+
+        .action-block.blue:hover {
+            border-color: #0d6efd;
+        }
+
+        .action-block.blue i {
+            color: #0d6efd;
+        }
+
+        /* 4. TABLA COMPACTA */
+        .table-wrapper-dark {
+            background-color: var(--card-bg);
+        }
+
+        .table-compact {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+            .table-compact th {
+                font-size: 0.85rem;
+                padding: 12px 20px;
+                background-color: rgba(30, 30, 30, 1);
+                color: #aaa;
+                border-bottom: 2px solid #444;
+                text-align: left;
+            }
+
+            .table-compact td {
+                font-size: 0.95rem;
+                padding: 12px 20px;
+                border-bottom: 1px solid #333;
+                color: white;
+                vertical-align: middle;
+            }
+
+        .badge-custom {
+            font-size: 0.75rem;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-wrapper">
+
+        <div class="d-flex justify-content-between align-items-center top-header card-dark">
+            <div>
+                <h1 class="main-title">PANEL DE CONTROL</h1>
+                <p class="sub-title">SISTEMA INTEGRAL DE GESTIÓN</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="/Contratos/Crear" class="btn-new-contract shadow">
+                    <i class="bi bi-plus-lg me-1"></i> NUEVO CONTRATO
+                </a>
+                <a href="/Home/Index" class="btn btn-outline-danger btn-sm px-3 d-flex align-items-center text-decoration-none">
+                    <i class="bi bi-power fs-5"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-5 g-3 mb-4">
+            <div class="col">
+                <div class="kpi-box">
+                    <div class="kpi-title">ACTIVOS</div>
+                    <div class="kpi-number">@ViewBag.TotalContratos</div>
+                    <i class="bi bi-file-earmark-text kpi-icon text-success"></i>
+                </div>
+            </div>
+            <div class="col">
+                <div class="kpi-box" style="border-left-color: #ffc107;">
+                    <div class="kpi-title">PRODUCCIÓN</div>
+                    <div class="kpi-number text-warning">@ViewBag.EnProduccion</div>
+                    <i class="bi bi-gear-wide-connected kpi-icon text-warning"></i>
+                </div>
+            </div>
+            <div class="col">
+                <div class="kpi-box" style="background-color: rgba(60, 10, 10, 0.8); border-color: #800; border-left-color: #dc3545;">
+                    <div class="kpi-title" style="color: #ffaaaa;">PERDIDOS</div>
+                    <div class="kpi-number text-danger">@ViewBag.ContratosPerdidos</div>
+                    <i class="bi bi-x-circle kpi-icon text-danger"></i>
+                </div>
+            </div>
+            <div class="col">
+                <div class="kpi-box" style="border-left-color: #dc3545;">
+                    <div class="kpi-title">PLANES CAIDOS</div>
+                    <div class="kpi-number text-danger">0</div>
+                    <i class="bi bi-exclamation-triangle kpi-icon text-danger"></i>
+                </div>
+            </div>
+            <div class="col">
+                <div class="kpi-box" style="border-left-color: #fff;">
+                    <div class="kpi-title">SOLICITUDES</div>
+                    <div class="kpi-number text-white">@ViewBag.PendientesAprobacion</div>
+                    <a href="/Usuarios/Gestionar" class="btn btn-outline-light btn-sm mt-1 w-100 py-0" style="font-size:0.75rem">REVISAR</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-lg-6">
+                <div class="card-dark h-100">
+                    <div class="section-header">
+                        <h3 class="section-title text-success"><i class="bi bi-pencil-square me-2"></i>CARGA Y REGISTROS</h3>
+                    </div>
+                    <div class="p-3">
+                        <div class="row g-3">
+
+                            <div class="col-6">
+                                <a href="/Colegios/Crear" class="action-block">
+                                    <i class="bi bi-building-add"></i>
+                                    <span class="action-text">REGISTRAR<br>COLEGIO</span>
+                                </a>
+                            </div>
+
+                            <div class="col-6">
+                                <a href="/Usuarios/Gestionar" class="action-block">
+                                    <i class="bi bi-people-fill"></i>
+                                    <span class="action-text">GESTIONAR<br>STAFF</span>
+                                </a>
+                            </div>
+
+                            <div class="col-6">
+                                <a href="/Pagos/Index" class="action-block">
+                                    <i class="bi bi-cash-coin"></i>
+                                    <span class="action-text">REGISTRAR<br>PAGOS</span>
+                                </a>
+                            </div>
+
+                            <div class="col-6">
+                                <a href="#" class="action-block">
+                                    <i class="bi bi-scissors"></i>
+                                    <span class="action-text">GESTIÓN<br>TALLERES</span>
+                                </a>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card-dark h-100">
+                    <div class="section-header">
+                        <h3 class="section-title text-primary" style="color: #6ea8fe !important;"><i class="bi bi-search me-2"></i>CONSULTAS</h3>
+                    </div>
+                    <div class="p-3">
+                        <div class="row g-3">
+                            <div class="col-6"><a href="/Colegios/Index" class="action-block blue"><i class="bi bi-buildings"></i><span class="action-text">VER<br>ESCUELAS</span></a></div>
+                            <div class="col-6"><a href="#" class="action-block blue"><i class="bi bi-person-check-fill"></i><span class="action-text">ASIGNAR<br>VENDEDOR</span></a></div>
+                            <div class="col-6"><a href="/Contratos/Index" class="action-block blue"><i class="bi bi-table"></i><span class="action-text">VER<br>CONTRATOS</span></a></div>
+                            <div class="col-6"><a href="#" class="action-block blue"><i class="bi bi-images"></i><span class="action-text">DISEÑOS<br>LISTOS</span></a></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-dark mb-4">
+            <div class="section-header">
+                <h3 class="section-title text-white">ÚLTIMOS CONTRATOS</h3>
+            </div>
+            <div class="table-wrapper-dark table-responsive">
+                <table class="table-compact">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">COLEGIO / INSTITUCIÓN</th>
+                            <th>VENDEDOR</th>
+                            <th>CANT.</th>
+                            <th>ESTADO</th>
+                            <th class="text-end pe-4">ACCIÓN</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Count == 0)
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-silver">
+                                    <i class="bi bi-inbox fs-4 d-block mb-2 opacity-50"></i>
+                                    <span>No hay contratos cargados aún.</span>
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td class="ps-4 fw-bold text-white">@item.NombreColegio</td>
+                                    <td class="text-silver">@item.VendedorAsignado</td>
+                                    <td class="text-silver">@item.CantidadEgresados u.</td>
+                                    <td>
+                                        @if (item.Estado == "En Producción")
+                                        {
+                                            <span class="badge bg-warning text-dark badge-custom">En Taller</span>
+                                        }
+                                        else if (item.Estado == "Entregado")
+                                        {
+
+                                            <span class="badge bg-success badge-custom">Entregado</span>
+                                        }
+                                        else if (item.Estado == "Firmado")
+                                        {
+
+                                            <span class="badge bg-primary badge-custom">Activo</span>
+                                        }
+                                        else if (item.Estado == "Perdido")
+                                        {
+
+                                            <span class="badge bg-dark text-secondary badge-custom" style="border:1px solid #555;">Perdido</span>
+                                        }
+                                        else
+                                        {
+
+                                            <span class="badge bg-secondary badge-custom">Presupuesto</span>
+                                        }
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        @if (item.Estado == "Presupuesto")
+                                        {
+                                            <form action="/Contratos/Firmar" method="post" style="display:inline;">
+                                                <input type="hidden" name="id" value="@item.Id" />
+                                                <button type="submit" class="btn btn-success btn-sm me-1" title="Firmar"><i class="bi bi-check-lg"></i></button>
+                                            </form>
+                                            <form action="/Contratos/Cancelar" method="post" style="display:inline;">
+                                                <input type="hidden" name="id" value="@item.Id" />
+                                                <button type="submit" class="btn btn-outline-danger btn-sm" title="No firmó"><i class="bi bi-x-lg"></i></button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <a href="/Contratos/Detalle/@item.Id" class="btn btn-outline-light btn-sm">DETALLE</a>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

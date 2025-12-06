@@ -1,0 +1,220 @@
+﻿@model InCollege.Dominio.Modelos.Contrato
+
+@{
+    ViewData["Title"] = "Nuevo Contrato";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>Nuevo Contrato</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <style>
+        body {
+            background-image: url('/interior.jpeg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-color: #000;
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+
+        /* TARJETA MÁS ALTA PARA QUE QUEPA LA LISTA */
+        .form-card {
+            background-color: rgba(15, 15, 15, 0.96);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+            width: 100%;
+            max-width: 1200px; /* Un poco más ancho */
+        }
+
+        .form-control, .form-select {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid #444;
+            color: white;
+            height: 50px;
+            font-size: 1rem;
+            padding-left: 15px;
+            border-radius: 6px;
+        }
+
+            .form-control:focus, .form-select:focus {
+                background-color: rgba(255, 255, 255, 0.1);
+                border-color: #1e6f42;
+                color: white;
+                box-shadow: none;
+            }
+
+        /* TEXTAREA PARA ALUMNOS */
+        textarea.form-control {
+            height: 150px; /* Altura para pegar lista */
+            font-family: monospace;
+            resize: none;
+        }
+
+        .form-label {
+            color: #aaa;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        option {
+            background-color: #111;
+            color: white;
+        }
+
+        .btn-brand {
+            background-color: #1e6f42;
+            color: white;
+            border: none;
+            height: 55px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            width: 100%;
+            text-transform: uppercase;
+            border-radius: 6px;
+            transition: 0.3s;
+            margin-top: 20px;
+        }
+
+            .btn-brand:hover {
+                background-color: #145230;
+                transform: scale(1.01);
+            }
+
+        .titulo-pag {
+            font-size: 2rem;
+            font-weight: 900;
+            margin-bottom: 20px;
+            border-left: 8px solid #1e6f42;
+            padding-left: 15px;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.9);
+        }
+
+        .section-divider {
+            border-bottom: 1px solid #333;
+            margin: 15px 0;
+            padding-bottom: 5px;
+            color: #1e6f42;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .link-cancelar {
+            font-size: 0.9rem;
+            color: #888;
+            text-decoration: none;
+        }
+
+            .link-cancelar:hover {
+                color: white;
+                text-decoration: underline;
+            }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12">
+
+                <div class="form-card">
+                    <h2 class="titulo-pag">NUEVO CONTRATO + ALUMNOS</h2>
+
+                    <form action="/Contratos/Crear" method="post">
+
+                        <div class="row">
+                            <div class="col-lg-8 border-end border-secondary pe-lg-4">
+                                <div class="section-divider">Datos Comerciales</div>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Institución</label>
+                                        <select name="ColegioId" class="form-select" asp-items="ViewBag.Colegios" required><option value="">Seleccionar...</option></select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label text-success">Pack / Diseño</label>
+                                        <select name="ProductoId" class="form-select" asp-items="ViewBag.Productos" required><option value="">Seleccionar...</option></select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Origen</label>
+                                        <select name="OrigenContacto" class="form-select" required>
+                                            <option value="Instagram (Administración)">Instagram</option>
+                                            <option value="Vendedor (Propio)">Vendedor</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Vendedor</label>
+                                        <input type="text" name="VendedorAsignado" class="form-control" value="Admin (Yo)">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Cant. Alumnos</label>
+                                        <input type="number" name="CantidadEgresados" class="form-control" required>
+                                    </div>
+                                </div>
+
+                                <div class="section-divider mt-4">Precios y Financiación</div>
+                                <div class="row g-3">
+                                    <div class="col-md-3">
+                                        <label class="form-label">Lista ($)</label>
+                                        <input type="number" name="PrecioUnitario" class="form-control" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label text-success">Contado ($)</label>
+                                        <input type="number" name="PrecioContado" class="form-control" required style="border-color:#1e6f42">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label text-warning">Seña ($)</label>
+                                        <input type="number" name="MontoSeña" class="form-control" required>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">Cuotas</label>
+                                        <input type="number" name="CantidadCuotas" class="form-control" placeholder="Ej: 6" required>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">Valor ($)</label>
+                                        <input type="number" name="MontoPorCuota" class="form-control" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-4 ps-lg-4">
+                                <div class="section-divider text-white"><i class="bi bi-list-ol me-2"></i> Lista de Alumnos</div>
+                                <div class="alert alert-dark border-secondary p-2 mb-2" style="font-size: 0.8rem; color:#aaa;">
+                                    Pega la lista aquí (un nombre por renglón).<br>El sistema los creará automáticamente.
+                                </div>
+
+                                <textarea name="ListaAlumnos" class="form-control" placeholder="PEREZ JUAN&#10;GOMEZ MARIA&#10;LOPEZ LUCAS..." required></textarea>
+
+                                <button type="submit" class="btn btn-brand shadow">
+                                    GUARDAR TODO
+                                </button>
+                                <div class="text-center mt-3">
+                                    <a href="/Home/PanelAdmin" class="link-cancelar">Cancelar</a>
+                                </div>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,53 @@
+﻿@model InCollege.Dominio.Modelos.Colegio
+@{
+    ViewData["Title"] = "Editar Colegio";
+}
+
+<style>
+    body { background-color: #000; color: white; background-image: url('/interior.jpeg'); background-size: cover; background-attachment: fixed; }
+    .form-card { background-color: rgba(12,12,12,0.96); border: 1px solid #444; padding: 40px; border-radius: 15px; max-width: 800px; margin: 0 auto; }
+    .form-control { background-color: rgba(255,255,255,0.05); border: 1px solid #555; color: white; height: 50px; font-size: 1.1rem; }
+    .btn-save { background-color: #d63384; color: white; border: none; font-weight: bold; width: 100%; padding: 15px; font-size: 1.2rem; } /* Color distinto para editar */
+</style>
+
+<div class="container mt-5">
+    <div class="form-card">
+        <h2 class="text-white fw-bold mb-4">EDITAR CLIENTE</h2>
+        <form action="/Colegios/Editar" method="post">
+            <input type="hidden" asp-for="Id" />
+
+            <div class="mb-3">
+                <label class="text-secondary">Nombre Institución</label>
+                <input asp-for="Nombre" class="form-control" required />
+            </div>
+            <div class="row g-3">
+                <div class="col-6">
+                    <label class="text-secondary">Dirección</label>
+                    <input asp-for="Direccion" class="form-control" />
+                </div>
+                <div class="col-6">
+                    <label class="text-secondary">Ciudad</label>
+                    <input asp-for="Ciudad" class="form-control" />
+                </div>
+            </div>
+            <hr class="border-secondary my-4">
+            <div class="mb-3">
+                <label class="text-secondary">Nombre Contacto</label>
+                <input asp-for="ContactoPrincipal" class="form-control" required />
+            </div>
+            <div class="row g-3">
+                <div class="col-6">
+                    <label class="text-secondary">Email</label>
+                    <input asp-for="Email" class="form-control" />
+                </div>
+                <div class="col-6">
+                    <label class="text-secondary">Teléfono</label>
+                    <input asp-for="Telefono" class="form-control" />
+                </div>
+            </div>
+
+            <button type="submit" class="btn-save mt-4">GUARDAR CAMBIOS</button>
+            <div class="text-center mt-3"><a href="/Colegios/Index" class="text-secondary">Cancelar</a></div>
+        </form>
+    </div>
+</div>

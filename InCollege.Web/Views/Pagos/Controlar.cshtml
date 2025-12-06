@@ -1,0 +1,228 @@
+﻿@using InCollege.Dominio.Modelos
+@model List<Estudiante>
+
+@{
+    ViewData["Title"] = "Control de Pagos";
+    var contrato = ViewBag.Contrato as Contrato;
+    var balance = ViewBag.Balance as Dictionary<Guid, decimal>;
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>Caja - @contrato.NombreColegio</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #000;
+            color: white;
+            background-image: url('/interior.jpeg');
+            background-size: cover;
+            background-attachment: fixed;
+            font-family: 'Segoe UI', sans-serif;
+            padding: 20px;
+        }
+
+        .header-box {
+            background-color: rgba(15,15,15,0.95);
+            border: 1px solid #333;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .student-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 5px;
+        }
+
+            .student-table th {
+                color: #888;
+                text-transform: uppercase;
+                padding: 10px;
+                font-size: 0.85rem;
+                letter-spacing: 1px;
+            }
+
+        .student-row {
+            background-color: rgba(30,30,30,0.85);
+            transition: 0.2s;
+        }
+
+            .student-row:hover {
+                background-color: #222;
+                transform: scale(1.002);
+            }
+
+            .student-row td {
+                padding: 12px 15px;
+                vertical-align: middle;
+                border: 1px solid #333;
+            }
+
+        .code-tag {
+            font-family: monospace;
+            background-color: #111;
+            color: #aaa;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid #444;
+            font-size: 0.9rem;
+        }
+
+        .paid-amount {
+            font-weight: bold;
+            color: #4ade80;
+            font-family: monospace;
+            font-size: 1.1rem;
+        }
+
+        .debt-amount {
+            font-weight: bold;
+            color: #ff6b6b;
+            font-family: monospace;
+            font-size: 1.1rem;
+        }
+
+        /* INPUTS PEQUEÑOS EN TABLA */
+        .input-pay {
+            background-color: #111;
+            border: 1px solid #555;
+            color: white;
+            width: 110px;
+            padding: 5px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .select-pay {
+            background-color: #111;
+            border: 1px solid #555;
+            color: white;
+            width: 100px;
+            padding: 5px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .btn-add {
+            background-color: #1e6f42;
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+
+            .btn-add:hover {
+                background-color: #145230;
+            }
+    </style>
+</head>
+<body>
+
+    <div class="header-box">
+        <div>
+            <h2 class="fw-bold m-0">@contrato.NombreColegio</h2>
+            <div class="d-flex gap-4 mt-2 align-items-center">
+                <span class="text-secondary">PRECIO TOTAL POR ALUMNO: <strong class="text-white">$ @contrato.PrecioUnitario.ToString("N0")</strong></span>
+                <span class="badge bg-warning text-dark">PLANILLA DE CONTROL</span>
+            </div>
+        </div>
+        <a href="/Pagos/Index" class="btn btn-outline-light btn-sm px-3">VOLVER A LISTA</a>
+    </div>
+
+    <div style="background-color: rgba(12,12,12,0.8); border-radius: 10px; padding: 10px;">
+        <table class="student-table">
+            <thead>
+                <tr>
+                    <th class="ps-4">CÓDIGO</th>
+                    <th>ESTUDIANTE</th>
+                    <th class="text-end">TOTAL PAGADO</th>
+                    <th class="text-end">DEUDA</th>
+                    <th class="text-center">ESTADO</th>
+                    <th class="text-end pe-4">IMPUTAR PAGO</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var est in Model)
+                {
+                    decimal pagado = balance.ContainsKey(est.Id) ? balance[est.Id] : 0;
+                    decimal deuda = contrato.PrecioUnitario - pagado;
+                    bool alDia = deuda <= 0;
+
+                    <tr class="student-row">
+                        <td class="ps-4"><span class="code-tag">@est.CodigoUnico</span></td>
+
+                        <td class="fw-bold text-white">@est.Apellido, @est.Nombre</td>
+
+                        <td class="text-end paid-amount">$ @pagado.ToString("N0")</td>
+
+                        <td class="text-end">
+                            @if (deuda > 0)
+                            {
+                                <span class="debt-amount">$ @deuda.ToString("N0")</span>
+                            }
+                            else
+                            {
+
+                                <span class="text-success small fw-bold">COMPLETADO</span>
+                            }
+                        </td>
+
+                        <td class="text-center">
+                            @if (alDia)
+                            {
+                                <span class="badge bg-success bg-opacity-25 text-success border border-success">AL DÍA</span>
+                            }
+                            else if (pagado > 0)
+                            {
+
+                                <span class="badge bg-warning bg-opacity-10 text-warning border border-warning">PARCIAL</span>
+                            }
+                            else
+                            {
+
+                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger">SIN PAGOS</span>
+                            }
+                        </td>
+
+                        <td class="text-end pe-4">
+                            @if (!alDia)
+                            {
+                                <form action="/Pagos/Registrar" method="post" class="d-flex justify-content-end align-items-center gap-2">
+                                    <input type="hidden" name="contratoId" value="@contrato.Id" />
+                                    <input type="hidden" name="estudianteId" value="@est.Id" />
+
+                                    <select name="medio" class="select-pay">
+                                        <option value="QR">QR/MP</option>
+                                        <option value="Transf">Transf</option>
+                                        <option value="Efectivo">Efectivo</option>
+                                    </select>
+                                    <input type="number" name="monto" class="input-pay" placeholder="$ Monto" required>
+
+                                    <button type="submit" class="btn-add" title="Guardar Pago">
+                                        <i class="bi bi-plus-lg"></i>
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <span class="text-muted small"><i class="bi bi-check-all"></i> Finalizado</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,240 @@
+﻿@model InCollege.Dominio.Modelos.Contrato
+
+@{
+    ViewData["Title"] = "Detalle del Contrato";
+    Layout = null;
+
+    // CÁLCULOS LISTA (FINANCIADO)
+    decimal totalLista = Model.CantidadEgresados * Model.PrecioUnitario;
+    decimal totalSenas = Model.CantidadEgresados * Model.MontoSeña;
+    decimal saldoRestante = totalLista - totalSenas;
+
+    // CÁLCULOS CONTADO (CASH)
+    decimal totalContado = Model.CantidadEgresados * Model.PrecioContado;
+
+    // AHORRO UNITARIO (Por alumno)
+    decimal ahorroUnitario = Model.PrecioUnitario - Model.PrecioContado;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>Detalle Contrato #@Model.Codigo</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <style>
+        body {
+            background-image: url('/interior.jpeg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-color: #000;
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .main-container {
+            padding-top: 40px;
+            padding-bottom: 40px;
+        }
+
+        .detail-card {
+            background-color: rgba(15, 15, 15, 0.98);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 30px 80px rgba(0,0,0,1);
+        }
+
+        .detail-header {
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+        }
+
+        .client-name {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        /* ESTILO PARA EL NÚMERO DE CONTRATO */
+        .contract-id {
+            color: #4ade80; /* Verde neón */
+            font-family: monospace;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 5px;
+            letter-spacing: 1px;
+        }
+
+        .status-badge {
+            font-size: 1rem;
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .bg-active {
+            background-color: #0d6efd;
+            color: white;
+        }
+
+        .bg-lost {
+            background-color: #333;
+            color: #888;
+            border: 1px solid #555;
+        }
+
+        .bg-budget {
+            background-color: #ffc107;
+            color: #000;
+        }
+
+        .info-label {
+            color: #888;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .info-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .finance-box {
+            background-color: rgba(30, 30, 30, 0.6);
+            border: 1px solid #444;
+            border-radius: 10px;
+            padding: 20px;
+            height: 100%;
+        }
+
+        .finance-highlight {
+            background-color: rgba(30, 111, 66, 0.1);
+            border: 1px solid #1e6f42;
+        }
+
+        .finance-total {
+            font-size: 2rem;
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+
+        .btn-back {
+            text-decoration: none;
+            color: #ccc;
+            font-weight: 600;
+        }
+
+            .btn-back:hover {
+                color: white;
+            }
+    </style>
+</head>
+<body>
+
+    <div class="container main-container">
+        <div class="row justify-content-center">
+            <div class="col-xl-10">
+
+                <div class="detail-card">
+
+                    <div class="detail-header">
+                        <div>
+                            <h1 class="client-name">@Model.NombreColegio</h1>
+                            <div class="contract-id">CONTRATO N° @Model.Codigo</div>
+                        </div>
+                        <div>
+                            @if (Model.Estado == "Firmado" || Model.Estado == "Activo")
+                            {
+                                <span class="status-badge bg-active">ACTIVO</span>
+                            }
+                            else if (Model.Estado == "Perdido")
+                            {
+                                <span class="status-badge bg-lost">CANCELADO</span>
+                            }
+                            else
+                            {
+                                <span class="status-badge bg-budget">PRESUPUESTO</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 border-end border-secondary pe-4">
+                            <h6 class="text-success mb-3 fw-bold text-uppercase">Datos Comerciales</h6>
+                            <span class="info-label">Producto</span><span class="info-value text-info">@Model.NombreProducto</span>
+                            <span class="info-label">Vendedor</span><span class="info-value">@Model.VendedorAsignado</span>
+                            <span class="info-label">Origen</span><span class="info-value">@Model.OrigenContacto</span>
+                            <span class="info-label">Alumnos</span><span class="info-value">@Model.CantidadEgresados u.</span>
+                            <span class="info-label">Fecha Creación</span><span class="info-value">@Model.FechaCreacion.ToString("dd/MM/yyyy")</span>
+                        </div>
+
+                        <div class="col-md-8 ps-md-4">
+                            <h6 class="text-success mb-3 fw-bold text-uppercase">Plan Económico</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="finance-box">
+                                        <span class="info-label text-white mb-2">PRECIO LISTA (Total)</span>
+                                        <div class="finance-total text-white">$ @totalLista.ToString("N0")</div>
+                                        <div class="small text-secondary mb-2">(@Model.CantidadEgresados x $@Model.PrecioUnitario.ToString("N0"))</div>
+                                        <hr class="border-secondary opacity-25">
+                                        <div class="d-flex justify-content-between"><span class="text-secondary small">Seña Total:</span><span class="text-warning fw-bold small">$ @totalSenas.ToString("N0")</span></div>
+                                        <div class="d-flex justify-content-between"><span class="text-secondary small">Saldo:</span><span class="text-white fw-bold small">$ @saldoRestante.ToString("N0")</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="finance-box finance-highlight">
+                                        <span class="info-label text-success mb-2">PRECIO CONTADO (Total)</span>
+                                        <div class="finance-total text-success">$ @totalContado.ToString("N0")</div>
+                                        <hr class="border-success opacity-25">
+                                        <div class="text-center py-2">
+                                            <span class="d-block text-secondary small mb-1">AHORRO POR ALUMNO</span>
+                                            <span class="fs-3 fw-bold text-white">$ @ahorroUnitario.ToString("N0")</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-top border-secondary d-flex justify-content-between align-items-center">
+                        <div>
+                            <a href="/Home/PanelAdmin" class="btn-back me-3"><i class="bi bi-arrow-left me-2"></i> VOLVER</a>
+
+                            <a href="/Padron/Index?contratoId=@Model.Id" class="btn btn-outline-info btn-sm px-3 fw-bold text-decoration-none">
+                                <i class="bi bi-people-fill me-1"></i> VER ALUMNOS
+                            </a>
+                        </div>
+
+                        @if (Model.Estado == "Presupuesto")
+                        {
+                            <form action="/Contratos/Firmar" method="post">
+                                <input type="hidden" name="id" value="@Model.Id" />
+                                <button type="submit" class="btn btn-success fw-bold px-4 shadow">FIRMAR CONTRATO</button>
+                            </form>
+                        }
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

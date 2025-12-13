@@ -84,31 +84,38 @@ namespace InCollege.Web.Controllers
         // --- ACCIONES (LÓGICA) ---
 
         [HttpPost]
+        [HttpPost]
         public IActionResult Login(string username, string password)
         {
-            // BUSCAR EN SQL:
-            // Buscamos un usuario que coincida en email y password
             var usuario = _context.Usuarios
-                .FirstOrDefault(u => u.Email == username && u.Password == password);
+        .FirstOrDefault(u => u.Email == username && u.Password == password);
 
             if (usuario != null)
             {
-                // 1. Validar si está activo
                 if (!usuario.EstaActivo)
                 {
                     ViewBag.Error = "Acceso denegado. Tu cuenta espera aprobación.";
                     return View("Index");
                 }
 
-                // 2. Redirigir según rol
+                // --- NUEVO: GUARDAR DATOS EN MEMORIA (SESSION) ---
+                // Esto permite que los otros controladores sepan quién eres
+                HttpContext.Session.SetString("UsuarioRol", usuario.Rol);
+                HttpContext.Session.SetString("UsuarioNombre", usuario.Nombre);
+                // -------------------------------------------------
+
                 if (usuario.Rol == "Administrador")
                 {
                     return RedirectToAction("PanelAdmin");
                 }
+                else if (usuario.Rol == "Vendedor")
+                {
+                    return RedirectToAction("PanelVendedor");
+                }
                 else
                 {
-                    // Por ahora, los usuarios normales ven un mensaje simple
-                    return Content($"BIENVENIDO {usuario.Nombre}. Sistema en construcción.");
+                    // Por defecto (o Taller/Diseñador en el futuro)
+                    return Content($"Hola {usuario.Nombre}. Tu panel está en construcción.");
                 }
             }
             else
@@ -158,6 +165,18 @@ namespace InCollege.Web.Controllers
             var listaContratos = _context.Contratos.OrderByDescending(c => c.FechaCreacion).ToList();
 
             return View(listaContratos);
+        }
+        public IActionResult PanelVendedor()
+        {
+            // Cargar datos para el vendedor (Contratos recientes)
+            var contratos = _context.Contratos
+                .OrderByDescending(c => c.FechaCreacion)
+                .Take(10) // Solo los últimos 10 para no saturar
+                .ToList();
+
+            ViewBag.TotalContratos = _context.Contratos.Count();
+
+            return View(contratos);
         }
     }
 }

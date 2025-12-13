@@ -1,4 +1,5 @@
-﻿@model IEnumerable<InCollege.Web.Models.EscuelaViewModel>
+﻿@using InCollege.Web.Models
+@model IEnumerable<EscuelaViewModel>
 
 @{
     ViewData["Title"] = "Cartera de Clientes";
@@ -92,6 +93,9 @@
         border-radius: 4px;
         font-weight: 700;
         text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
     }
 </style>
 
@@ -147,19 +151,27 @@
                                 <td>
                                     @if (item.EstadoActual == "Firmado" || item.EstadoActual == "Activo")
                                     {
-                                        <span class="badge bg-primary badge-status">ACTIVO</span>
+                                        <span class="badge bg-success bg-opacity-25 text-success border border-success badge-status">
+                                            <i class="bi bi-check-circle-fill"></i> CLIENTE ACTIVO
+                                        </span>
                                     }
                                     else if (item.EstadoActual == "Perdido")
                                     {
-                                        <span class="badge bg-dark border border-secondary text-secondary badge-status">PERDIDO</span>
+                                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger badge-status">
+                                            <i class="bi bi-x-circle-fill"></i> EX-PROSPECTO
+                                        </span>
                                     }
                                     else if (item.EstadoActual == "Presupuesto")
                                     {
-                                        <span class="badge bg-warning text-dark badge-status">NEGOCIANDO</span>
+                                        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning badge-status">
+                                            <i class="bi bi-clock-history"></i> NEGOCIANDO
+                                        </span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-secondary badge-status">SIN GESTIÓN</span>
+                                        <span class="badge bg-secondary bg-opacity-25 text-secondary border border-secondary badge-status">
+                                            SIN GESTIÓN
+                                        </span>
                                     }
                                 </td>
                                 <td class="text-end">

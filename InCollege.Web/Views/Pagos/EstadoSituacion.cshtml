@@ -6,9 +6,11 @@
     Layout = null;
 
     var contrato = ViewBag.Contrato as Contrato;
-    var listaPagos = ViewBag.Pagos as List<Pago>;
 
-    decimal recargo = ViewBag.RecargoHoy;
+    // CORRECCIÓN CRÍTICA: Si ViewBag.Pagos es nulo, usamos una lista vacía para evitar el error.
+    var listaPagos = (ViewBag.Pagos as List<Pago>) ?? new List<Pago>();
+
+    decimal recargo = ViewBag.RecargoHoy ?? 0; // Protección también para el recargo
     decimal precioBase = contrato.MontoPorCuota;
     decimal precioActual = precioBase + recargo;
 }
@@ -218,8 +220,16 @@
                                 }
                                 else
                                 {
+                                    <form action="/Pagos/RegistrarPagoIndividual" method="post">
+                                        <input type="hidden" name="contratoId" value="@contrato.Id" />
+                                        <input type="hidden" name="estudianteId" value="@est.Id" />
+                                        <input type="hidden" name="nroCuota" value="0" /> <input type="hidden" name="monto" value="@contrato.MontoSeña" />
+                                        <input type="hidden" name="medio" value="Chequera" />
 
-                                    <span class="text-secondary small">-</span>
+                                        <button type="submit" class="btn-pay-cell" style="color: #ffc107; border-color: #ffc107;">
+                                            $@contrato.MontoSeña.ToString("N0")
+                                        </button>
+                                    </form>
                                 }
                             </td>
 
@@ -239,9 +249,7 @@
                                         <form action="/Pagos/RegistrarPagoIndividual" method="post">
                                             <input type="hidden" name="contratoId" value="@contrato.Id" />
                                             <input type="hidden" name="estudianteId" value="@est.Id" />
-
                                             <input type="hidden" name="nroCuota" value="@c" />
-
                                             <input type="hidden" name="monto" value="@precioActual" />
                                             <input type="hidden" name="medio" value="Chequera" />
 

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace InCollege.Datos.Migrations
 {
     /// <inheritdoc />
-    public partial class InicialLimpia : Migration
+    public partial class ReinicioTotal : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -84,6 +84,7 @@ namespace InCollege.Datos.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Codigo = table.Column<int>(type: "int", nullable: false),
                     ColegioId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     NombreColegio = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ProductoId = table.Column<int>(type: "int", nullable: false),
@@ -96,7 +97,6 @@ namespace InCollege.Datos.Migrations
                     MontoSeña = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     CantidadCuotas = table.Column<int>(type: "int", nullable: false),
                     MontoPorCuota = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Codigo = table.Column<int>(type: "int", nullable: false),
                     Estado = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     VendedorAsignado = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
@@ -118,13 +118,12 @@ namespace InCollege.Datos.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Nombre = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Apellido = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Dni = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Talle = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Dni = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     EstaAlDia = table.Column<bool>(type: "bit", nullable: false),
                     TotalPagado = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     CodigoUnico = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    TalleAbrigo = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    TalleRemera = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    TalleAbrigo = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TalleRemera = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ContratoId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
@@ -143,11 +142,14 @@ namespace InCollege.Datos.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Fecha = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    FechaPago = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Monto = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Concepto = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    NumeroCuota = table.Column<int>(type: "int", nullable: false),
                     MedioDePago = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Estado = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ContratoId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    EstudianteId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    EstudianteId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
                 {

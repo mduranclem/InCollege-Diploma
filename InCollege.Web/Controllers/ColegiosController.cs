@@ -18,21 +18,16 @@ namespace InCollege.Web.Controllers
         // GET: /Colegios/Index -> Muestra la lista
         public IActionResult Index()
         {
-            // 1. Traemos todos los colegios
             var colegios = _context.Colegios.ToList();
-
-            // 2. Preparamos la lista para la vista
             var listaVisual = new List<EscuelaViewModel>();
+
+            // Traemos todos los contratos de una sola vez para no hacer mil consultas
+            var todosLosContratos = _context.Contratos.ToList();
 
             foreach (var col in colegios)
             {
-                // 3. Buscamos el ÚLTIMO contrato de este colegio
-                var ultimoContrato = _context.Contratos
-                    .Where(c => c.ColegioId == col.Id)
-                    .OrderByDescending(c => c.FechaCreacion) // El más nuevo
-                    .FirstOrDefault();
+                var contratosDelColegio = todosLosContratos.Where(c => c.ColegioId == col.Id).ToList();
 
-                // 4. Llenamos el modelo visual
                 var item = new EscuelaViewModel
                 {
                     Id = col.Id,
@@ -44,18 +39,32 @@ namespace InCollege.Web.Controllers
                     Email = col.Email,
                 };
 
-                // 5. Determinamos el ESTADO según el contrato
-                if (ultimoContrato == null)
+                // --- LÓGICA DE ESTADO DEL CLIENTE ---
+                if (contratosDelColegio.Any(c => c.Estado == "Firmado" || c.Estado == "En Producción" || c.Estado == "Entregado"))
                 {
-                    item.EstadoActual = "Nuevo / Sin Gestión";
+                    // Si tiene AL MENOS UN contrato vigente, es un cliente activo (aunque tenga otros perdidos)
+                    item.EstadoActual = "Firmado";
+
+                    // Mostramos el vendedor de ese contrato activo
+                    item.Vendedor = contratosDelColegio.First(c => c.Estado == "Firmado" || c.Estado == "En Producción").VendedorAsignado;
+                }
+                else if (contratosDelColegio.Any(c => c.Estado == "Presupuesto"))
+                {
+                    // Si no firmó nada pero tiene presupuestos abiertos
+                    item.EstadoActual = "Presupuesto";
+                    item.Vendedor = contratosDelColegio.First(c => c.Estado == "Presupuesto").VendedorAsignado;
+                }
+                else if (contratosDelColegio.Any(c => c.Estado == "Perdido"))
+                {
+                    // Si todo lo que tiene es histórico perdido (Ideal para volver a llamar)
+                    item.EstadoActual = "Perdido";
                     item.Vendedor = "-";
-                    item.UltimoProducto = "-";
                 }
                 else
                 {
-                    item.EstadoActual = ultimoContrato.Estado; // "Presupuesto", "Firmado", "Perdido"
-                    item.Vendedor = ultimoContrato.VendedorAsignado;
-                    item.UltimoProducto = ultimoContrato.NombreProducto;
+                    // Escuela cargada sin contratos aún
+                    item.EstadoActual = "Nuevo";
+                    item.Vendedor = "-";
                 }
 
                 listaVisual.Add(item);

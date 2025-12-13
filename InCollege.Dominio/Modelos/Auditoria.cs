@@ -7,17 +7,15 @@ namespace InCollege.Dominio.Modelos
     {
         [Key]
         public int Id { get; set; }
-
         public DateTime Fecha { get; set; } = DateTime.Now;
 
-        // GUARDAMOS SOLO EL EMAIL (TEXTO)
-        // Esto evita errores de Foreign Keys y conflictos de ID (Int vs Guid)
+        // CORRECCIÓN: Debe llamarse igual que en la base de datos
         public string UsuarioEmail { get; set; }
 
         public string Accion { get; set; }
         public string Detalle { get; set; }
-        public string Modulo { get; set; }
 
-        public Auditoria() { }
+        // Agregamos Modulo por si la base de datos lo tiene de antes
+        public string Modulo { get; set; }
     }
 }

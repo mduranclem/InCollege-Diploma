@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace InCollege.Datos.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251201224252_InicialLimpia")]
-    partial class InicialLimpia
+    [Migration("20251212202304_ReinicioTotal")]
+    partial class ReinicioTotal
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -173,7 +173,6 @@ namespace InCollege.Datos.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Dni")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("EstaAlDia")
@@ -183,16 +182,10 @@ namespace InCollege.Datos.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Talle")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("TalleAbrigo")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TalleRemera")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("TotalPagado")
@@ -211,13 +204,22 @@ namespace InCollege.Datos.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("Concepto")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<Guid>("ContratoId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("EstudianteId")
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("EstudianteId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("Fecha")
+                    b.Property<DateTime>("FechaPago")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("MedioDePago")
@@ -226,6 +228,9 @@ namespace InCollege.Datos.Migrations
 
                     b.Property<decimal>("Monto")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("NumeroCuota")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -332,7 +337,7 @@ namespace InCollege.Datos.Migrations
             modelBuilder.Entity("InCollege.Dominio.Modelos.Estudiante", b =>
                 {
                     b.HasOne("InCollege.Dominio.Modelos.Contrato", "Contrato")
-                        .WithMany()
+                        .WithMany("Estudiantes")
                         .HasForeignKey("ContratoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -351,12 +356,16 @@ namespace InCollege.Datos.Migrations
                     b.HasOne("InCollege.Dominio.Modelos.Estudiante", "Estudiante")
                         .WithMany()
                         .HasForeignKey("EstudianteId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Contrato");
 
                     b.Navigation("Estudiante");
+                });
+
+            modelBuilder.Entity("InCollege.Dominio.Modelos.Contrato", b =>
+                {
+                    b.Navigation("Estudiantes");
                 });
 #pragma warning restore 612, 618
         }

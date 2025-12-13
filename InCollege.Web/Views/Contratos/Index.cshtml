@@ -1,7 +1,12 @@
 ﻿@model IEnumerable<InCollege.Dominio.Modelos.Contrato>
+@using Microsoft.AspNetCore.Http
 
 @{
     ViewData["Title"] = "Listado de Contratos";
+
+    // --- LÓGICA INTELIGENTE DE RETORNO ---
+    string rolUsuario = Context.Session.GetString("UsuarioRol");
+    string linkVolver = (rolUsuario == "Vendedor") ? "/Home/PanelVendedor" : "/Home/PanelAdmin";
 }
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
@@ -57,7 +62,7 @@
         .table-massive th {
             background-color: rgba(255, 255, 255, 0.05);
             color: #aaa;
-            font-size: 1.2rem;
+            font-size: 1.1rem; /* Ajustado */
             text-transform: uppercase;
             padding: 25px;
             text-align: left;
@@ -66,7 +71,7 @@
 
         .table-massive td {
             padding: 25px;
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             border-bottom: 1px solid #333;
             color: white;
             vertical-align: middle;
@@ -143,7 +148,7 @@
             <p class="text-secondary ms-4 mt-2 mb-0" style="font-size: 1.2rem;">Gestión de acuerdos comerciales</p>
         </div>
         <div class="d-flex gap-3">
-            <a href="/Home/PanelAdmin" class="btn-back">VOLVER</a>
+            <a href="@linkVolver" class="btn-back">VOLVER AL PANEL</a>
             <a href="/Contratos/Crear" class="btn-new shadow">+ NUEVO</a>
         </div>
     </div>
@@ -153,15 +158,16 @@
             <table class="table-massive">
                 <thead>
                     <tr>
-                        <th class="ps-5">INSTITUCIÓN</th>
+                        <th class="ps-5">N° CONTRATO</th>
+                        <th>INSTITUCIÓN</th>
                         <th>PRODUCTO / PACK</th>
                         <th>CANT.</th>
                         <th>PRECIO U.</th>
-                        <th>TOTAL EST.</th>
                         <th>ESTADO</th>
                         <th class="text-end pe-5">ACCIONES</th>
                     </tr>
                 </thead>
+
                 <tbody>
                     @if (!Model.Any())
                     {
@@ -177,12 +183,19 @@
                         @foreach (var item in Model)
                         {
                             <tr>
-                                <td class="ps-5 fw-bold text-white">@item.NombreColegio</td>
-                                <td style="color: #4ade80;">@item.NombreProducto</td>
-                                <td>@item.CantidadEgresados</td>
-                                <td>$ @item.PrecioUnitario.ToString("N0")</td>
+                                <td class="ps-5">
+                                    <span class="badge bg-dark border border-secondary text-white fs-5" style="font-family: monospace;">
+                                        @item.Codigo
+                                    </span>
+                                </td>
 
-                                <td class="fw-bold text-white">$ @((item.CantidadEgresados * item.PrecioUnitario).ToString("N0"))</td>
+                                <td class="fw-bold text-white">@item.NombreColegio</td>
+
+                                <td style="color: #4ade80;">@item.NombreProducto</td>
+
+                                <td>@item.CantidadEgresados</td>
+
+                                <td>$ @item.PrecioUnitario.ToString("N0")</td>
 
                                 <td>
                                     @if (item.Estado == "Presupuesto")
@@ -191,35 +204,51 @@
                                     }
                                     else if (item.Estado == "En Producción")
                                     {
+
                                         <span class="badge bg-warning text-dark fs-6 px-3 py-2">En Taller</span>
                                     }
                                     else if (item.Estado == "Perdido")
                                     {
+
                                         <span class="badge bg-dark border border-secondary text-secondary fs-6 px-3 py-2">Perdido</span>
                                     }
                                     else
                                     {
+
                                         <span class="badge bg-success fs-6 px-3 py-2">@item.Estado</span>
                                     }
                                 </td>
-                                <td class="text-end pe-5">
-                                    <div class="d-flex justify-content-end gap-2">
 
-                                        <a href="/Contratos/Detalle/@item.Id" class="btn btn-outline-light px-3 py-2" style="font-weight:bold;">
-                                            DETALLE
-                                        </a>
+                                <td class="text-end pe-5 d-flex justify-content-end gap-2">
 
-                                        <a href="/Contratos/Editar/@item.Id" class="action-icon-btn btn-edit" title="Editar">
-                                            <i class="bi bi-pencil-fill"></i>
-                                        </a>
-
-                                        <form action="/Contratos/Eliminar" method="post" onsubmit="return confirm('¿Eliminar este contrato? Se perderán los datos asociados.');">
+                                    @if (item.Estado == "Presupuesto")
+                                    {
+                                        /* Si es Presupuesto, mostramos Firmar */
+                                        <form action="/Contratos/Firmar" method="post" style="display:inline;">
                                             <input type="hidden" name="id" value="@item.Id" />
-                                            <button type="submit" class="action-icon-btn btn-delete" title="Eliminar">
-                                                <i class="bi bi-trash-fill"></i>
-                                            </button>
+                                            <button type="submit" class="btn btn-success px-3 py-2 fw-bold" title="Firmar"><i class="bi bi-check-lg"></i></button>
                                         </form>
-                                    </div>
+                                        <form action="/Contratos/Cancelar" method="post" style="display:inline;">
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <button type="submit" class="btn btn-outline-danger px-3 py-2 fw-bold" title="Cancelar"><i class="bi bi-x-lg"></i></button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        /* Si ya está activo, mostramos Detalle */
+                                        <a href="/Contratos/Detalle/@item.Id" class="btn btn-outline-light px-3 py-2" style="font-weight:bold;">DETALLE</a>
+                                    }
+
+                                    <a href="/Contratos/Editar/@item.Id" class="action-icon-btn btn-edit" title="Editar">
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </a>
+
+                                    <form action="/Contratos/Eliminar" method="post" onsubmit="return confirm('¿Eliminar este contrato? Se perderán los datos asociados.');">
+                                        <input type="hidden" name="id" value="@item.Id" />
+                                        <button type="submit" class="action-icon-btn btn-delete" title="Eliminar">
+                                            <i class="bi bi-trash-fill"></i>
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
                         }
@@ -228,5 +257,4 @@
             </table>
         </div>
     </div>
-
 </div>

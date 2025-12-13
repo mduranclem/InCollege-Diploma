@@ -334,7 +334,7 @@ namespace InCollege.Datos.Migrations
             modelBuilder.Entity("InCollege.Dominio.Modelos.Estudiante", b =>
                 {
                     b.HasOne("InCollege.Dominio.Modelos.Contrato", "Contrato")
-                        .WithMany()
+                        .WithMany("Estudiantes")
                         .HasForeignKey("ContratoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -358,6 +358,11 @@ namespace InCollege.Datos.Migrations
                     b.Navigation("Contrato");
 
                     b.Navigation("Estudiante");
+                });
+
+            modelBuilder.Entity("InCollege.Dominio.Modelos.Contrato", b =>
+                {
+                    b.Navigation("Estudiantes");
                 });
 #pragma warning restore 612, 618
         }

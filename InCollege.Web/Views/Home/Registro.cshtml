@@ -1,35 +1,165 @@
 ﻿@{
-    ViewData["Title"] = "Solicitud de Acceso";
+    ViewData["Title"] = "Solicitar Acceso";
+    Layout = null;
 }
 
-<div class="row justify-content-center mt-5">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h4>Solicitar Acceso a InCollege</h4>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>Solicitud de Acceso</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <style>
+        body {
+            background-image: url('/interior.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-color: #000;
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .register-card {
+            background-color: rgba(15, 15, 15, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 30px 80px rgba(0,0,0,1);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        /* --- AQUÍ ESTÁ EL CAMBIO DE VISIBILIDAD --- */
+        .form-control {
+            background-color: rgba(255, 255, 255, 0.15) !important; /* Más claro para que se vea la caja */
+            border: 1px solid #888 !important; /* Borde gris claro */
+            color: #ffffff !important; /* Texto blanco puro al escribir */
+            height: 50px;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+            .form-control:focus {
+                background-color: rgba(255, 255, 255, 0.25) !important; /* Aún más claro al hacer clic */
+                border-color: #1e6f42 !important;
+                color: white !important;
+                box-shadow: 0 0 10px rgba(30, 111, 66, 0.5);
+            }
+
+        /* TEXTO DE AYUDA (PLACEHOLDER) BLANCO */
+        ::placeholder {
+            color: #e0e0e0 !important; /* Casi blanco */
+            opacity: 1;
+        }
+
+        /* Botón del ojo */
+        .btn-eye {
+            background-color: rgba(255, 255, 255, 0.15);
+            border: 1px solid #888;
+            border-left: none;
+            color: #fff;
+        }
+
+            .btn-eye:hover {
+                background-color: #444;
+                color: white;
+            }
+
+        .btn-brand {
+            background-color: #1e6f42;
+            color: white;
+            border: none;
+            height: 50px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            width: 100%;
+            text-transform: uppercase;
+            border-radius: 6px;
+            margin-top: 20px;
+            transition: 0.3s;
+        }
+
+            .btn-brand:hover {
+                background-color: #145230;
+                transform: scale(1.02);
+            }
+
+        .link-back {
+            color: #aaa;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+            .link-back:hover {
+                color: white;
+            }
+    </style>
+</head>
+<body>
+
+    <div class="register-card">
+        <h2 class="fw-bold text-center mb-1">UNIRSE AL EQUIPO</h2>
+        <p class="text-secondary text-center mb-4 small">Solicita tu cuenta corporativa</p>
+
+        <form action="/Home/RegistrarUsuario" method="post">
+
+            <div class="row g-2 mb-3">
+                <div class="col-6">
+                    <input type="text" name="Nombre" class="form-control" placeholder="Nombre" required>
+                </div>
+                <div class="col-6">
+                    <input type="text" name="Apellido" class="form-control" placeholder="Apellido" required>
+                </div>
             </div>
-            <div class="card-body">
-                <form action="/Home/RegistrarUsuario" method="post">
-                    <div class="mb-3">
-                        <label>Nombre</label>
-                        <input type="text" name="nombre" class="form-control" required />
-                    </div>
-                    <div class="mb-3">
-                        <label>Apellido</label>
-                        <input type="text" name="apellido" class="form-control" required />
-                    </div>
-                    <div class="mb-3">
-                        <label>Gmail / Correo Institucional</label>
-                        <input type="email" name="email" class="form-control" required />
-                    </div>
-                    <div class="mb-3">
-                        <label>Contraseña</label>
-                        <input type="password" name="password" class="form-control" required />
-                    </div>
-                    <button type="submit" class="btn btn-success w-100">Enviar Solicitud</button>
-                </form>
+
+            <div class="mb-3">
+                <input type="email" name="Email" class="form-control" placeholder="Email Corporativo" required>
             </div>
-        </div>
-        <a href="/Home/Index" class="btn btn-link mt-3">Volver al Login</a>
+
+            <div class="input-group mb-3">
+                <input type="password" name="Password" id="passwordInput" class="form-control" placeholder="Contraseña" style="border-right: none;" required>
+                <button class="btn btn-eye" type="button" id="togglePassword">
+                    <i class="bi bi-eye"></i>
+                </button>
+            </div>
+
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger py-2 text-center small">@ViewBag.Error</div>
+            }
+
+            <button type="submit" class="btn-brand">ENVIAR SOLICITUD</button>
+
+            <div class="text-center mt-3">
+                <a href="/Home/Index" class="link-back">Volver al Login</a>
+            </div>
+        </form>
     </div>
-</div>
+
+    <script>
+        const togglePassword = document.querySelector('#togglePassword');
+        const password = document.querySelector('#passwordInput');
+        const icon = togglePassword.querySelector('i');
+
+        togglePassword.addEventListener('click', function (e) {
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+            if (type === 'text') {
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        });
+    </script>
+
+</body>
+</html>

@@ -3,20 +3,20 @@ using InCollege.Datos;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- 1. CONFIGURACIÓN SQL ---
+// 1. DB
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(connectionString));
-
-// --- 2. SERVICIOS MVC ---
-// Agregamos RuntimeCompilation para que si cambias una vista, se actualice sin reiniciar
+// 2. SERVICIOS
 builder.Services.AddControllersWithViews()
     .AddRazorRuntimeCompilation();
 
+// --- AGREGAR ESTA LÍNEA PARA ACTIVAR SESIONES ---
+builder.Services.AddSession();
+// -----------------------------------------------
+
 var app = builder.Build();
 
-// --- 3. PIPELINE HTTP ---
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -24,14 +24,14 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-// IMPORTANTE: Para .NET 8 usamos UseStaticFiles, no MapStaticAssets
-// Esto permite que carguen tus imágenes de fondo y CSS
 app.UseStaticFiles();
-
 app.UseRouting();
 
 app.UseAuthorization();
+
+// --- AGREGAR ESTA LÍNEA (ANTES DE MAPCONTROLLER) ---
+app.UseSession();
+// ---------------------------------------------------
 
 app.MapControllerRoute(
     name: "default",

@@ -1,0 +1,149 @@
+﻿@model IEnumerable<InCollege.Dominio.Modelos.Contrato>
+
+@{
+    ViewData["Title"] = "Asignar Vendedores";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+<style>
+    body {
+        background-image: url('/interior.jpeg');
+        background-size: cover;
+        background-attachment: fixed;
+        background-color: #000;
+        color: white;
+    }
+
+    .main-container {
+        width: 90%;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding-top: 30px;
+    }
+
+    .card-dark {
+        background-color: rgba(12, 12, 12, 0.98);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 10px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+        overflow: hidden;
+    }
+
+    .table-assign th {
+        background-color: rgba(255,255,255,0.05);
+        color: #aaa;
+        padding: 15px;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        border-bottom: 2px solid #444;
+    }
+
+    .table-assign td {
+        padding: 15px;
+        border-bottom: 1px solid #333;
+        vertical-align: middle;
+    }
+
+    /* Estilo del Select */
+    .form-select-dark {
+        background-color: #222;
+        border: 1px solid #555;
+        color: white;
+        font-size: 0.9rem;
+        padding: 5px 10px;
+        border-radius: 4px;
+    }
+
+        .form-select-dark:focus {
+            background-color: #333;
+            color: white;
+            border-color: #1e6f42;
+            box-shadow: none;
+        }
+
+    .btn-save {
+        background-color: transparent;
+        border: 1px solid #1e6f42;
+        color: #1e6f42;
+        padding: 5px 10px;
+        border-radius: 4px;
+        transition: 0.3s;
+    }
+
+        .btn-save:hover {
+            background-color: #1e6f42;
+            color: white;
+        }
+</style>
+
+<div class="main-container">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 p-4 card-dark">
+        <div>
+            <h2 class="fw-bold m-0 border-start border-5 border-warning ps-3 text-uppercase">Distribución de Ventas</h2>
+            <p class="text-secondary ms-4 mb-0 mt-1">Reasignación de cartera de clientes</p>
+        </div>
+        <a href="/Home/PanelAdmin" class="btn btn-outline-light px-4">VOLVER</a>
+    </div>
+
+    <div class="card-dark">
+        <div class="table-responsive">
+            <table class="table w-100 table-assign mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4">REF / CONTRATO</th>
+                        <th>COLEGIO</th>
+                        <th>ESTADO</th>
+                        <th>VENDEDOR ACTUAL</th>
+                        <th style="width: 350px;">ASIGNAR A</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="ps-4 font-monospace text-secondary">
+                                @(item.Codigo != null ? item.Codigo.ToString() : "PENDIENTE")
+                            </td>
+                            <td class="fw-bold text-white">@item.NombreColegio</td>
+                            <td>
+                                @if (item.Estado == "Firmado")
+                                {
+                                    <span class="badge bg-success bg-opacity-25 text-success border border-success">ACTIVO</span>
+                                }
+                                else if (item.Estado == "Presupuesto")
+                                {
+
+                                    <span class="badge bg-secondary bg-opacity-25 text-secondary border border-secondary">PRESUPUESTO</span>
+                                }
+                                else
+                                {
+
+                                    <span class="badge bg-warning text-dark">@item.Estado</span>
+                                }
+                            </td>
+                            <td class="text-info">
+                                <i class="bi bi-person-fill me-1"></i> @item.VendedorAsignado
+                            </td>
+                            <td>
+                                <form action="/Contratos/CambiarVendedor" method="post" class="d-flex gap-2">
+                                    <input type="hidden" name="contratoId" value="@item.Id" />
+
+                                    <select name="nuevoVendedor" class="form-select form-select-dark" asp-items="ViewBag.ListaVendedores">
+                                        <option disabled selected>-- Seleccionar --</option>
+                                    </select>
+
+                                    <button type="submit" class="btn-save" title="Guardar Cambio">
+                                        <i class="bi bi-check-lg"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>

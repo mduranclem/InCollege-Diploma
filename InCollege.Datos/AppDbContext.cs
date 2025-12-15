@@ -15,8 +15,7 @@ namespace InCollege.Datos
         public DbSet<Auditoria> Auditorias { get; set; }
         public DbSet<Estudiante> Estudiantes { get; set; }
         public DbSet<Pago> Pagos { get; set; }
-
-
+        public DbSet<Taller> Talleres { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

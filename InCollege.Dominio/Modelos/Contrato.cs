@@ -50,5 +50,8 @@ namespace InCollege.Dominio.Modelos
 
         // RELACIÓN CON ALUMNOS (1 Contrato -> Muchos Estudiantes)
         public virtual ICollection<Estudiante> Estudiantes { get; set; }
+        public int? TallerAsignadoId { get; set; } // El ID del taller (puede ser nulo si no se envió aun)
+        public string? NombreTaller { get; set; } // Guardamos el nombre para mostrarlo fácil
+        public string? EtapaProduccion { get; set; }
     }
 }

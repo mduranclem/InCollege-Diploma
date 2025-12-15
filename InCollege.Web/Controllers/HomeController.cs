@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using InCollege.Datos;           // Acceso a la DB
-using InCollege.Dominio.Modelos; // Acceso a los Modelos
-using InCollege.Dominio.Patrones; // IMPORTANTE: Acceso a PrendaIndividual y Kit
+using InCollege.Datos;            // Acceso a la DB
+using InCollege.Dominio.Modelos;  // Acceso a los Modelos
+using InCollege.Dominio.Patrones; // Acceso a PrendaIndividual y Kit
 using System.Linq;
 
 namespace InCollege.Web.Controllers
@@ -16,6 +16,9 @@ namespace InCollege.Web.Controllers
         {
             _context = context;
 
+            // --- SECCIÓN DE SEMILLA (SEEDING) ---
+            // Se ejecuta cada vez que se llama al controlador si los datos no existen.
+            
             // 1. SEMILLA DE USUARIOS (Si no existe, crea Admin)
             if (!_context.Usuarios.Any())
             {
@@ -38,17 +41,17 @@ namespace InCollege.Web.Controllers
                 _context.SaveChanges();
             }
 
-            // 3. SEMILLA DE KITS (CORREGIDA PARA QUE FUNCIONE SI O SI)
+            // 3. SEMILLA DE KITS
             // Verificamos si no hay Kits cargados.
             if (!_context.Productos.OfType<KitComposite>().Any())
             {
-                // CORRECCIÓN: Usamos 'Contains' para ser más flexibles buscando las prendas
+                // Buscamos las prendas base usando 'Contains' para ser más flexibles
                 var buzo = _context.Productos.FirstOrDefault(p => p.Nombre.Contains("Buzo"));
                 var campera = _context.Productos.FirstOrDefault(p => p.Nombre.Contains("Campera"));
                 var remera = _context.Productos.FirstOrDefault(p => p.Nombre.Contains("Remera"));
                 var chomba = _context.Productos.FirstOrDefault(p => p.Nombre.Contains("Chomba"));
 
-                // Solo si encontramos las partes, armamos los robots
+                // Solo si encontramos las partes, armamos los robots (Kits)
                 if (buzo != null && campera != null && remera != null && chomba != null)
                 {
                     var kit1 = new KitComposite("COMBO 1: Buzo + Remera");
@@ -73,6 +76,11 @@ namespace InCollege.Web.Controllers
 
         public IActionResult Index()
         {
+            // Si el usuario ya está logueado, redirigirlo a su panel correspondiente
+            var rol = HttpContext.Session.GetString("UsuarioRol");
+            if (rol == "Administrador") return RedirectToAction("PanelAdmin");
+            if (rol == "Vendedor") return RedirectToAction("PanelVendedor");
+
             return View();
         }
 
@@ -84,11 +92,10 @@ namespace InCollege.Web.Controllers
         // --- ACCIONES (LÓGICA) ---
 
         [HttpPost]
-        [HttpPost]
         public IActionResult Login(string username, string password)
         {
             var usuario = _context.Usuarios
-        .FirstOrDefault(u => u.Email == username && u.Password == password);
+                .FirstOrDefault(u => u.Email == username && u.Password == password);
 
             if (usuario != null)
             {
@@ -98,11 +105,10 @@ namespace InCollege.Web.Controllers
                     return View("Index");
                 }
 
-                // --- NUEVO: GUARDAR DATOS EN MEMORIA (SESSION) ---
-                // Esto permite que los otros controladores sepan quién eres
+                // --- GUARDAR DATOS EN MEMORIA (SESSION) ---
                 HttpContext.Session.SetString("UsuarioRol", usuario.Rol);
                 HttpContext.Session.SetString("UsuarioNombre", usuario.Nombre);
-                // -------------------------------------------------
+                // ------------------------------------------
 
                 if (usuario.Rol == "Administrador")
                 {
@@ -138,12 +144,10 @@ namespace InCollege.Web.Controllers
             // Crear nuevo usuario
             Usuario nuevo = new Usuario(nombre, apellido, email, password);
 
-            // --- CORRECCIÓN AQUÍ ---
-            // Como la Base de Datos obliga a tener una Zona, le ponemos una por defecto.
-            // Luego el Admin se la cambiará cuando lo apruebe.
+            // Como la DB obliga a tener una Zona, le ponemos una por defecto.
             nuevo.Zona = "Sin Asignar";
 
-            // Aseguramos también que nazca inactivo y sin rol definido (o con rol básico)
+            // Aseguramos también que nazca inactivo y sin rol definido
             nuevo.EstaActivo = false;
             nuevo.Rol = "Sin Asignar";
 
@@ -154,33 +158,54 @@ namespace InCollege.Web.Controllers
             return View("Index");
         }
 
+        // Acción para Cerrar Sesión (Conectada al botón del Layout)
+        public IActionResult CerrarSesion()
+        {
+            HttpContext.Session.Clear(); // Limpia la memoria
+            return RedirectToAction("Index");
+        }
+
         // --- DASHBOARD DEL ADMINISTRADOR ---
 
         public IActionResult PanelAdmin()
         {
-            // 1. CONTRATOS ACTIVOS: Son los que NO son Presupuesto Y TAMPOCO son Perdidos
+            // Seguridad básica: Verificar Rol
+            if (HttpContext.Session.GetString("UsuarioRol") != "Administrador")
+                return RedirectToAction("Index");
+
+            // 1. CONTRATOS ACTIVOS (Ni Presupuesto, ni Perdidos)
             ViewBag.TotalContratos = _context.Contratos
                 .Where(c => c.Estado != "Presupuesto" && c.Estado != "Perdido")
                 .Count();
 
-            // 2. NUEVO KPI: CONTRATOS PERDIDOS
+            // 2. CONTRATOS PERDIDOS
             ViewBag.ContratosPerdidos = _context.Contratos
                 .Where(c => c.Estado == "Perdido")
                 .Count();
 
+            var contratos = _context.Contratos.OrderByDescending(c => c.FechaCreacion).ToList();
+
             ViewBag.EnProduccion = _context.Contratos.Where(c => c.Estado == "En Producción").Count();
             ViewBag.PendientesAprobacion = _context.Usuarios.Where(u => !u.EstaActivo).Count();
+            ViewBag.ListaTalleres = _context.Talleres.Where(t => t.Activo).ToList();
 
             var listaContratos = _context.Contratos.OrderByDescending(c => c.FechaCreacion).ToList();
 
-            return View(listaContratos);
+            return View(contratos);
         }
+
+        // --- DASHBOARD DEL VENDEDOR ---
+
         public IActionResult PanelVendedor()
         {
+            // Seguridad básica: Verificar Rol
+            if (HttpContext.Session.GetString("UsuarioRol") != "Vendedor")
+                return RedirectToAction("Index");
+
             // Cargar datos para el vendedor (Contratos recientes)
             var contratos = _context.Contratos
                 .OrderByDescending(c => c.FechaCreacion)
-                .Take(10) // Solo los últimos 10 para no saturar
+                .Take(10) 
                 .ToList();
 
             ViewBag.TotalContratos = _context.Contratos.Count();

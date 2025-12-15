@@ -1,0 +1,84 @@
+﻿@model IEnumerable<InCollege.Dominio.Modelos.Producto>
+
+@{
+    ViewData["Title"] = "Diseños Listos";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>Catálogo - InCollege</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #000;
+            color: white;
+            background-image: url('/interior.jpeg');
+            background-size: cover;
+            padding: 40px;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .card-product {
+            background-color: rgba(30,30,30,0.9);
+            border: 1px solid #444;
+            border-radius: 10px;
+            transition: 0.3s;
+            height: 100%;
+        }
+
+            .card-product:hover {
+                transform: translateY(-5px);
+                border-color: #1e6f42;
+                box-shadow: 0 5px 15px rgba(30, 111, 66, 0.3);
+            }
+
+        .price-badge {
+            background-color: #1e6f42;
+            color: white;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-5 p-4" style="background-color: rgba(15,15,15,0.95); border-radius: 10px; border: 1px solid #333;">
+            <h2 class="fw-bold text-white m-0 border-start border-5 border-primary ps-3">DISEÑOS Y PACKS LISTOS</h2>
+
+            @{
+                string rol = Context.Session.GetString("UsuarioRol");
+                string linkVolver = (rol == "Vendedor") ? "/Home/PanelVendedor" : "/Home/PanelAdmin";
+            }
+            <a href="@linkVolver" class="btn btn-outline-light">VOLVER</a>
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            @foreach (var item in Model)
+            {
+                <div class="col">
+                    <div class="card-product p-4 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h4 class="fw-bold text-white">@item.Nombre</h4>
+                                <i class="bi bi-tag-fill fs-4 text-secondary"></i>
+                            </div>
+                            <p class="text-secondary">
+                                Descripción técnica del producto, telas y especificaciones de confección.
+                            </p>
+                        </div>
+                        <div class="mt-3 pt-3 border-top border-secondary d-flex justify-content-between align-items-center">
+                            <span class="text-white-50 small">COD: @item.Id.ToString().Substring(0, 4)</span>
+                            <span class="price-badge">DISPONIBLE</span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</body>
+</html>

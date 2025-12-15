@@ -20,7 +20,7 @@ namespace InCollege.Web.Controllers
             _context = context;
         }
 
-        // FUNCIÓN DE LIMPIEZA
+        // FUNCIÓN DE LIMPIEZA DE ACENTOS
         private string RemoverTildes(string texto)
         {
             if (string.IsNullOrEmpty(texto)) return "";
@@ -55,9 +55,7 @@ namespace InCollege.Web.Controllers
                     c.Estudiantes.Any(e =>
                         RemoverTildes(e.Nombre).Contains(termino) ||
                         RemoverTildes(e.Apellido).Contains(termino) ||
-                        RemoverTildes(e.CodigoUnico).Contains(termino) ||
-                        RemoverTildes(e.Nombre + " " + e.Apellido).Contains(termino) ||
-                        RemoverTildes(e.Apellido + " " + e.Nombre).Contains(termino)
+                        RemoverTildes(e.CodigoUnico).Contains(termino)
                     )
                 ).ToList();
             }
@@ -102,17 +100,30 @@ namespace InCollege.Web.Controllers
                 balance.Add(est.Id, pagado);
             }
 
-            // D. Calcular Recargo del día
+            // D. REGLA DE NEGOCIO: CALCULAR RECARGO Y CUOTA ACTUAL
             int dia = DateTime.Now.Day;
             decimal recargo = 0;
-            if (dia >= 10 && dia <= 19) recargo = 1000;
-            else if (dia >= 20) recargo = 2000;
 
-            // --- PASAR DATOS A LA VISTA (ESTO ES LO QUE FALTABA) ---
+            // Regla: Después del día 10 hay recargo de $1.000 (ajustable)
+            if (dia > 10) recargo = 1000;
+
+            // --- LÓGICA NUEVA: CALCULAR CUOTA DEL MES ACTUAL ---
+            // Calculamos la diferencia en meses entre Hoy y la Fecha de Creación del contrato
+            int mesesPasados = ((DateTime.Now.Year - contrato.FechaCreacion.Year) * 12) +
+                               (DateTime.Now.Month - contrato.FechaCreacion.Month);
+
+            // La cuota "vigente" es la diferencia + 1. 
+            // Ejemplo: Si se creó en Enero y estamos en Marzo -> diferencia 2 -> Cuota 3.
+            // Aseguramos que sea al menos 1
+            int cuotaVigente = Math.Max(1, mesesPasados + 1);
+
+            // Pasamos todos los datos a la vista
             ViewBag.Contrato = contrato;
             ViewBag.Balance = balance;
-            ViewBag.Pagos = pagos;        // <--- ¡ESTO ARREGLA EL ERROR!
-            ViewBag.RecargoHoy = recargo; // <--- ¡ESTO TAMBIÉN FALTABA!
+            ViewBag.Pagos = pagos;
+            ViewBag.RecargoHoy = recargo;
+            ViewBag.CuotaVigente = cuotaVigente; // <--- ¡AQUÍ ESTÁ LA MAGIA!
+
             ViewData["BusquedaActual"] = busqueda;
 
             return View(todosLosAlumnos);
@@ -120,10 +131,9 @@ namespace InCollege.Web.Controllers
 
         // 3. REGISTRAR PAGO
         [HttpPost]
-        [HttpPost]
         public IActionResult RegistrarPagoIndividual(Guid contratoId, Guid estudianteId, int nroCuota, decimal monto, string medio)
         {
-            // 1. VALIDACIÓN: Verificamos primero si ya existe para no duplicar
+            // 1. VALIDACIÓN
             bool yaPago = _context.Pagos.Any(p =>
                 p.ContratoId == contratoId &&
                 p.EstudianteId == estudianteId &&
@@ -138,33 +148,28 @@ namespace InCollege.Web.Controllers
                     EstudianteId = estudianteId,
                     NumeroCuota = nroCuota,
                     Monto = monto,
-                    MedioDePago = medio ?? "Chequera",
+                    MedioDePago = medio ?? "Efectivo",
                     FechaPago = DateTime.Now,
                     Concepto = $"Cuota {nroCuota}",
                     Estado = "Acreditado"
                 };
 
-                // 3. AGREGAR EL PAGO AL CONTEXTO (Todavía no se guarda en la DB)
                 _context.Pagos.Add(pago);
 
-                // 4. BUSCAR EL CÓDIGO DEL ALUMNO (Para que el log se vea profesional)
+                // 3. AUDITORÍA
                 var alumno = _context.Estudiantes.Find(estudianteId);
                 string identificadorAlumno = (alumno != null) ? alumno.CodigoUnico : "Desconocido";
 
-                // 5. PATRÓN FACTORY: CREAR LA AUDITORÍA CON EL CÓDIGO LEGIBLE
                 var log = AuditoriaFactory.Crear(
-                    "admin@incollege.com",
+                    HttpContext.Session.GetString("UsuarioNombre") ?? "Sistema",
                     "COBRO REGISTRADO",
-                    $"Se cobró ${monto} al alumno {identificadorAlumno} (Cuota {nroCuota}). Medio: {medio ?? "Chequera"}"
+                    $"Se cobró ${monto} al alumno {identificadorAlumno} (Cuota {nroCuota}). Medio: {medio ?? "Efectivo"}"
                 );
 
                 _context.Auditorias.Add(log);
-
-                // 6. GUARDAR TODO JUNTO (Una sola transacción a la base de datos)
                 _context.SaveChanges();
             }
 
-            // Volvemos a la matriz para ver el cambio
             return RedirectToAction("EstadoSituacion", new { id = contratoId });
         }
     }

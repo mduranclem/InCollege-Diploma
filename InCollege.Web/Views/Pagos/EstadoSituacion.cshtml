@@ -1,18 +1,16 @@
-﻿@using InCollege.Dominio.Modelos
-@model List<Estudiante>
+﻿@model List<InCollege.Dominio.Modelos.Estudiante>
+@using InCollege.Dominio.Modelos
 
 @{
     ViewData["Title"] = "Matriz de Control";
     Layout = null;
 
     var contrato = ViewBag.Contrato as Contrato;
-
-    // CORRECCIÓN CRÍTICA: Si ViewBag.Pagos es nulo, usamos una lista vacía para evitar el error.
     var listaPagos = (ViewBag.Pagos as List<Pago>) ?? new List<Pago>();
 
-    decimal recargo = ViewBag.RecargoHoy ?? 0; // Protección también para el recargo
+    decimal recargo = ViewBag.RecargoHoy ?? 0;
+    int cuotaVigente = ViewBag.CuotaVigente ?? 1; // Leemos la cuota actual calculada en el Controller
     decimal precioBase = contrato.MontoPorCuota;
-    decimal precioActual = precioBase + recargo;
 }
 
 <!DOCTYPE html>
@@ -182,7 +180,7 @@
                         }
 
                         <span class="price-tag" style="border-color: #1e6f42;">
-                            A COBRAR HOY: <span class="price-value">$@precioActual.ToString("N0")</span>
+                            A COBRAR HOY: <span class="price-value">$@((precioBase + recargo).ToString("N0"))</span>
                         </span>
                     </div>
                 </div>
@@ -246,15 +244,26 @@
                                     }
                                     else
                                     {
+                                        // --- LÓGICA DE PRECIO CORRECTA ---
+                                        // Si la cuota es menor o igual a la actual, aplicamos recargo.
+                                        // Si es futura, precio base.
+                                        decimal montoACobrar = precioBase;
+                                        if (c <= cuotaVigente && recargo > 0)
+                                        {
+                                            montoACobrar += recargo;
+                                        }
+
                                         <form action="/Pagos/RegistrarPagoIndividual" method="post">
                                             <input type="hidden" name="contratoId" value="@contrato.Id" />
                                             <input type="hidden" name="estudianteId" value="@est.Id" />
                                             <input type="hidden" name="nroCuota" value="@c" />
-                                            <input type="hidden" name="monto" value="@precioActual" />
+
+                                            <input type="hidden" name="monto" value="@montoACobrar" />
                                             <input type="hidden" name="medio" value="Chequera" />
 
-                                            <button type="submit" class="btn-pay-cell">
-                                                $@precioActual.ToString("N0")
+                                            <button type="submit" class="btn-pay-cell"
+                                                    style="@(montoACobrar > precioBase ? "color: #ffc107; border-color: #ffc107;" : "")">
+                                                $@montoACobrar.ToString("N0")
                                             </button>
                                         </form>
                                     }

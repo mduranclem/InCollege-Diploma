@@ -1,0 +1,162 @@
+﻿@model InCollege.Dominio.Modelos.Taller
+@using InCollege.Dominio.Modelos
+
+@{
+    ViewData["Title"] = "Detalle de Taller";
+    Layout = null;
+    var trabajos = ViewBag.Trabajos as List<Contrato>;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>Trabajos en @Model.Nombre</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #000;
+            color: white;
+            background-image: url('/interior.jpeg');
+            background-size: cover;
+            background-attachment: fixed;
+            font-family: 'Segoe UI', sans-serif;
+            padding: 40px;
+        }
+
+        .card-dark {
+            background-color: rgba(15,15,15,0.98);
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+        }
+
+        .kpi-card {
+            background-color: rgba(255,255,255,0.05);
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        /* --- CORRECCIÓN DE LA TABLA PARA VISIBILIDAD --- */
+        .table-dark-custom {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            --bs-table-bg: transparent;
+        }
+
+            .table-dark-custom thead tr {
+                background-color: #222 !important;
+            }
+
+            .table-dark-custom th {
+                background-color: #222 !important;
+                color: #ccc;
+                border-bottom: 2px solid #ffc107;
+                padding: 15px;
+                text-transform: uppercase;
+                font-size: 0.85rem;
+            }
+
+            /* Fondo oscuro en las filas para que el texto blanco se lea */
+            .table-dark-custom tbody tr {
+                background-color: rgba(30, 30, 30, 0.8) !important;
+                transition: 0.2s;
+            }
+
+            .table-dark-custom td {
+                color: white !important;
+                border-bottom: 1px solid #444;
+                vertical-align: middle;
+                padding: 15px;
+            }
+
+            .table-dark-custom tbody tr:hover {
+                background-color: rgba(50, 50, 50, 1) !important;
+            }
+    </style>
+</head>
+<body>
+    <div class="container" style="max-width: 900px;">
+
+        <div class="d-flex justify-content-between mb-4">
+            <h2 class="text-white fw-bold"><i class="bi bi-scissors text-warning me-2"></i>@Model.Nombre</h2>
+            <a href="/Talleres/Index" class="btn btn-outline-secondary">VOLVER</a>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="kpi-card">
+                    <small class="text-muted d-block text-uppercase fw-bold" style="font-size:0.7rem">ESPECIALIDAD</small>
+                    <span class="fw-bold fs-5 text-warning">@Model.Especialidad</span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="kpi-card">
+                    <small class="text-muted d-block text-uppercase fw-bold" style="font-size:0.7rem">CONTACTO</small>
+                    <span class="fw-bold fs-5">@Model.Responsable</span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="kpi-card" style="border-color: #ffc107;">
+                    <small class="text-muted d-block text-uppercase fw-bold" style="font-size:0.7rem">TRABAJOS ACTIVOS</small>
+                    <span class="fw-bold fs-2 text-white">@trabajos.Count</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-dark">
+            <h4 class="mb-3 text-white border-bottom border-secondary pb-3">CONTRATOS EN PODER DEL TALLER</h4>
+
+            <div class="table-responsive">
+                <table class="table-dark-custom">
+                    <thead>
+                        <tr>
+                            <th>CÓDIGO</th>
+                            <th>COLEGIO</th>
+                            <th>CANTIDAD</th>
+                            <th>FECHA INGRESO</th>
+                            <th class="text-end">ACCIÓN</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (trabajos.Count == 0)
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-secondary">
+                                    <i class="bi bi-inbox fs-3 d-block mb-2 opacity-50"></i>
+                                    Este taller no tiene trabajos asignados actualmente.
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var item in trabajos)
+                            {
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-dark border border-secondary text-white font-monospace">#@item.Codigo</span>
+                                    </td>
+                                    <td class="fw-bold text-white">@item.NombreColegio</td>
+                                    <td class="text-warning fw-bold">@item.CantidadEgresados prendas</td>
+                                    <td class="text-secondary">@item.FechaCreacion.ToShortDateString()</td>
+                                    <td class="text-end">
+                                        <a href="/Contratos/Detalle/@item.Id" class="btn btn-sm btn-warning fw-bold text-dark">
+                                            <i class="bi bi-file-earmark-text me-1"></i>Ver Ficha
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

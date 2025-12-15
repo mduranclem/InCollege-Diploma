@@ -9,14 +9,15 @@ namespace InCollege.Dominio.Modelos
         public string Apellido { get; set; }
         public string Email { get; set; }
         public string Password { get; set; }
-        public string Zona { get; set; } // Ej: "Norte", "Sur", "Oeste"
-        public DateTime FechaAlta { get; set; } = DateTime.Now;
 
-        // NUEVO: Define qué permisos tiene (Admin, Estudiante, Invitado)
+        // CORRECCIÓN: Agregamos '?' para permitir que venga vacío de la BD
+        public string? Zona { get; set; }
+
+        // CORRECCIÓN: Agregamos '?' para evitar el error de SqlNullValueException
+        public DateTime? FechaAlta { get; set; } = DateTime.Now;
+
         public string Rol { get; set; } = "SinAsignar";
 
-        // NUEVO: Define si puede entrar o no.
-        // false = Esperando aprobación. true = Puede entrar.
         public bool EstaActivo { get; set; } = false;
 
         public Usuario() { }
@@ -27,9 +28,10 @@ namespace InCollege.Dominio.Modelos
             Apellido = apellido;
             Email = email;
             Password = password;
-            // Por defecto, todo nuevo usuario nace inactivo y sin rol
+            // Valores por defecto
             Rol = "SinAsignar";
             EstaActivo = false;
+            FechaAlta = DateTime.Now;
         }
     }
 }

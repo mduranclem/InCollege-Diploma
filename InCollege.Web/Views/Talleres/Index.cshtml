@@ -1,0 +1,185 @@
+﻿@model IEnumerable<InCollege.Dominio.Modelos.Taller>
+@using Microsoft.AspNetCore.Http
+
+@{
+    ViewData["Title"] = "Gestión de Talleres";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>Talleres - InCollege</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #000;
+            color: white;
+            background-image: url('/interior.jpeg');
+            background-size: cover;
+            background-attachment: fixed;
+            font-family: 'Segoe UI', sans-serif;
+            padding: 40px;
+        }
+
+        .card-dark {
+            background-color: rgba(15,15,15,0.95);
+            border: 1px solid #333;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+
+        /* --- CORRECCIÓN DE LA TABLA (SOLUCIÓN AL FONDO BLANCO) --- */
+        .table-dark-custom {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            --bs-table-bg: transparent; /* Quita el fondo blanco de bootstrap */
+        }
+
+            .table-dark-custom thead tr {
+                background-color: #222 !important;
+            }
+
+            .table-dark-custom th {
+                background-color: #222 !important;
+                color: #aaa;
+                border-bottom: 2px solid #1e6f42;
+                padding: 15px;
+                text-transform: uppercase;
+                font-size: 0.85rem;
+            }
+
+            /* AQUÍ ESTÁ LA MAGIA: Forzamos fondo oscuro en las filas */
+            .table-dark-custom tbody tr {
+                background-color: rgba(30, 30, 30, 0.8) !important;
+                transition: background-color 0.3s;
+            }
+
+            .table-dark-custom td {
+                color: white !important; /* Aseguramos que el texto sea blanco */
+                border-bottom: 1px solid #444;
+                vertical-align: middle;
+                padding: 15px;
+                font-size: 1rem;
+            }
+
+            /* Efecto al pasar el mouse */
+            .table-dark-custom tbody tr:hover {
+                background-color: rgba(50, 50, 50, 1) !important;
+            }
+
+        /* --- ESTILOS DE INPUTS (Gris claro para que se vean) --- */
+        .form-control {
+            background-color: rgba(255,255,255,0.15);
+            border: 1px solid #666;
+            color: white;
+            font-weight: 500;
+        }
+
+            .form-control::placeholder {
+                color: #bbb;
+            }
+
+            .form-control:focus {
+                background-color: rgba(255,255,255,0.25);
+                color: white;
+                border-color: #1e6f42;
+                box-shadow: none;
+            }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card-dark">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="fw-bold text-white border-start border-5 border-success ps-3">GESTIÓN DE TALLERES</h2>
+
+                @{
+                    string rol = Context.Session.GetString("UsuarioRol");
+                    string linkVolver = (rol == "Vendedor") ? "/Home/PanelVendedor" : "/Home/PanelAdmin";
+                }
+                <a href="@linkVolver" class="btn btn-outline-secondary">VOLVER AL PANEL</a>
+            </div>
+
+            <div class="p-4 mb-4" style="background-color: rgba(255,255,255,0.03); border: 1px solid #333; border-radius: 8px;">
+                <h5 class="text-success mb-3 fw-bold"><i class="bi bi-plus-circle me-2"></i>Registrar Nuevo Taller</h5>
+
+                <form asp-action="Crear" method="post" class="row g-3">
+                    <div class="col-md-3">
+                        <input type="text" name="Nombre" class="form-control" placeholder="Nombre del Taller" required />
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" name="Responsable" class="form-control" placeholder="Dueño / Contacto" required />
+                    </div>
+                    <div class="col-md-2">
+                        <input type="text" name="Especialidad" class="form-control" placeholder="Ej: Costura" />
+                    </div>
+                    <div class="col-md-2">
+                        <input type="text" name="Telefono" class="form-control" placeholder="Teléfono" />
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-success w-100 fw-bold">AGREGAR</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-dark-custom">
+                    <thead>
+                        <tr>
+                            <th>NOMBRE</th>
+                            <th>RESPONSABLE</th>
+                            <th>ESPECIALIDAD</th>
+                            <th>CONTACTO</th>
+                            <th class="text-end">ACCIÓN</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center text-secondary py-4" style="background-color: transparent !important;">No hay talleres registrados aún.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td class="fw-bold text-white fs-5">@item.Nombre</td>
+                                    <td>@item.Responsable</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(item.Especialidad))
+                                        {
+                                            <span class="badge bg-secondary border border-secondary">@item.Especialidad</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-white-50">---</span>
+                                        }
+                                    </td>
+                                    <td>@(item.Telefono ?? "Sin dato")</td>
+                                    <td class="text-end">
+                                        <a href="/Talleres/Detalle/@item.Id" class="btn btn-sm btn-outline-warning me-1" title="Ver Trabajos Asignados">
+                                            <i class="bi bi-eye-fill"></i>
+                                        </a>
+
+                                        <form asp-action="Eliminar" method="post" style="display:inline;" onsubmit="return confirm('¿Borrar este taller de la lista?');">
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar"><i class="bi bi-trash"></i></button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

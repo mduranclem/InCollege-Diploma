@@ -1,0 +1,120 @@
+﻿@model InCollege.Dominio.Modelos.Taller
+
+@{
+    ViewData["Title"] = "Nuevo Taller";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>Nuevo Taller - InCollege</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #000;
+            color: white;
+            background-image: url('/interior.jpeg');
+            background-size: cover;
+            background-attachment: fixed;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .card-dark {
+            background-color: rgba(20, 20, 20, 0.95);
+            border: 1px solid #444;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            width: 100%;
+            max-width: 600px;
+        }
+
+        /* --- CORRECCIÓN DE VISIBILIDAD DE INPUTS --- */
+        .form-control {
+            background-color: rgba(255, 255, 255, 0.15) !important; /* Gris más claro y translúcido */
+            border: 1px solid #666 !important;
+            color: white !important;
+            font-size: 1.1rem;
+        }
+
+            .form-control:focus {
+                background-color: rgba(255, 255, 255, 0.25) !important; /* Aún más claro al escribir */
+                border-color: #1e6f42 !important;
+                box-shadow: 0 0 10px rgba(30, 111, 66, 0.5);
+            }
+
+            .form-control::placeholder {
+                color: #ccc; /* Texto de ayuda bien visible */
+            }
+
+        .form-label {
+            color: #ddd;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .btn-success {
+            background-color: #1e6f42;
+            border: none;
+            padding: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+            .btn-success:hover {
+                background-color: #145230;
+            }
+    </style>
+</head>
+<body>
+
+    <div class="card-dark">
+        <h2 class="mb-4 text-center fw-bold text-white border-bottom border-secondary pb-3">REGISTRAR TALLER</h2>
+
+        <form asp-action="Crear" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="mb-3">
+                <label class="form-label">Nombre del Taller</label>
+                <input asp-for="Nombre" class="form-control" placeholder="Ej: Confecciones Marta" required />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Responsable / Dueño</label>
+                <input asp-for="Responsable" class="form-control" placeholder="Nombre de contacto" />
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Especialidad</label>
+                    <input asp-for="Especialidad" class="form-control" placeholder="Ej: Costura, Bordado" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Teléfono</label>
+                    <input asp-for="Telefono" class="form-control" placeholder="Ej: 11-5555-4444" />
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">Dirección</label>
+                <input asp-for="Direccion" class="form-control" placeholder="Calle, Altura, Localidad" />
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-success btn-lg shadow">GUARDAR TALLER</button>
+                <a href="/Talleres/Index" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+
+</body>
+</html>

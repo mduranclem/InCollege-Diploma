@@ -128,21 +128,30 @@ namespace InCollege.Web.Controllers
         [HttpPost]
         public IActionResult RegistrarUsuario(string nombre, string apellido, string email, string password)
         {
-            // Validar si el email ya existe en SQL
+            // Validar si el email ya existe
             if (_context.Usuarios.Any(u => u.Email == email))
             {
                 ViewBag.Error = "Ese correo ya está registrado.";
                 return View("Registro");
             }
 
-            // Crear nuevo usuario (Nace inactivo)
+            // Crear nuevo usuario
             Usuario nuevo = new Usuario(nombre, apellido, email, password);
 
+            // --- CORRECCIÓN AQUÍ ---
+            // Como la Base de Datos obliga a tener una Zona, le ponemos una por defecto.
+            // Luego el Admin se la cambiará cuando lo apruebe.
+            nuevo.Zona = "Sin Asignar";
+
+            // Aseguramos también que nazca inactivo y sin rol definido (o con rol básico)
+            nuevo.EstaActivo = false;
+            nuevo.Rol = "Sin Asignar";
+
             _context.Usuarios.Add(nuevo);
-            _context.SaveChanges(); // INSERT INTO Usuarios...
+            _context.SaveChanges();
 
             ViewBag.Exito = "Solicitud enviada. Espera la aprobación del Admin.";
-            return View("Index"); // Volvemos al Login
+            return View("Index");
         }
 
         // --- DASHBOARD DEL ADMINISTRADOR ---

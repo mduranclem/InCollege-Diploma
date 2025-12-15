@@ -19,41 +19,62 @@
         border-radius: 12px;
         padding: 40px;
         margin-top: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.8);
     }
 
-    .form-control {
+    .form-control, .form-select {
         background-color: rgba(255, 255, 255, 0.05);
         border: 1px solid #444;
         color: white;
-        height: 60px;
-        font-size: 1.2rem;
+        height: 50px;
+        font-size: 1.1rem;
     }
+
+        .form-control:focus, .form-select:focus {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: #1e6f42;
+            color: white;
+            box-shadow: none;
+        }
+
+        /* Para que las opciones del select sean legibles */
+        .form-select option {
+            background-color: #222;
+            color: white;
+        }
 
     .form-label {
         color: #ccc;
         font-weight: 600;
         margin-top: 10px;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 
     .btn-green {
         background-color: #1e6f42;
         color: white;
-        border: none;
+        border: 1px solid #1e6f42;
         padding: 15px;
         font-weight: bold;
         width: 100%;
-        font-size: 1.2rem;
-        border-radius: 8px;
-        margin-top: 20px;
+        font-size: 1.1rem;
+        border-radius: 6px;
+        margin-top: 30px;
+        transition: 0.3s;
+        text-transform: uppercase;
     }
 
         .btn-green:hover {
             background-color: #145230;
+            border-color: #145230;
             color: white;
+            transform: translateY(-2px);
         }
 </style>
 
-<div class="container mt-5">
+<div class="container mt-5 mb-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <h2 class="fw-bold text-white mb-4 border-start border-5 border-success ps-3">NUEVO COLEGIO</h2>
@@ -61,16 +82,32 @@
             <div class="form-card">
                 <form action="/Colegios/Crear" method="post">
 
-                    <div class="mb-3">
-                        <label class="form-label">Nombre Institución</label>
+                    <div class="mb-4">
+                        <label class="form-label text-white">Nombre Institución <span class="text-danger">*</span></label>
                         <input type="text" name="Nombre" class="form-control" placeholder="Ej: Colegio Nacional" required>
+                    </div>
+
+                    <div class="mb-4 p-3 border border-secondary rounded bg-dark bg-opacity-25">
+                        <label class="form-label text-warning mb-2"><i class="bi bi-geo-alt-fill"></i> ZONA GEOGRÁFICA (Asignación Automática)</label>
+                        <select name="Zona" class="form-select" required>
+                            <option value="">-- Seleccionar Zona --</option>
+                            <option value="Norte">Zona Norte</option>
+                            <option value="Sur">Zona Sur</option>
+                            <option value="Oeste">Zona Oeste</option>
+                            <option value="Centro">Zona Centro</option>
+                            <option value="Alrededores">Alrededores / Funes / Roldán</option>
+                        </select>
+                        <small class="text-secondary mt-1 d-block" style="font-size: 0.8rem;">
+                            * El sistema asignará automáticamente al vendedor responsable de esta zona.
+                        </small>
                     </div>
 
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label">Dirección</label>
-                            <input type="text" name="Direccion" class="form-control">
+                            <label class="form-label">Dirección <span class="text-secondary" style="font-size: 0.7rem; text-transform:none;">(Opcional)</span></label>
+                            <input type="text" name="Direccion" class="form-control" placeholder="Calle y número">
                         </div>
+
                         <div class="col-md-6">
                             <label class="form-label">Ciudad</label>
                             <input type="text" name="Ciudad" class="form-control">
@@ -78,11 +115,11 @@
                     </div>
 
                     <hr class="border-secondary my-4">
-                    <h5 class="text-success mb-3">Datos de Contacto</h5>
+                    <h5 class="text-success mb-3 fw-bold">DATOS DE CONTACTO</h5>
 
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label">Nombre Contacto (Madre/Padre)</label>
+                            <label class="form-label">Nombre Contacto (Madre/Padre) <span class="text-danger">*</span></label>
                             <input type="text" name="ContactoPrincipal" class="form-control" required>
                         </div>
                         <div class="col-md-6">
@@ -91,9 +128,10 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="btn-green">GUARDAR CLIENTE</button>
+                    <button type="submit" class="btn-green shadow">GUARDAR CLIENTE</button>
+
                     <div class="text-center mt-3">
-                        <a href="/Home/PanelAdmin" class="text-decoration-none text-secondary">Cancelar</a>
+                        <a href="/Home/PanelAdmin" class="text-decoration-none text-secondary hover-white">Cancelar operación</a>
                     </div>
                 </form>
             </div>

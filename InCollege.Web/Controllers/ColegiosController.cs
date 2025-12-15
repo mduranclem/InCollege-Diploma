@@ -84,31 +84,52 @@ namespace InCollege.Web.Controllers
         [HttpPost]
         public IActionResult Crear(Colegio colegio)
         {
-            // 1. PARCHE DE DATOS:
-            // Como borramos el input de Email del formulario, llega nulo.
-            // Le asignamos un guion para que la base de datos no se queje.
-            if (string.IsNullOrEmpty(colegio.Email)) colegio.Email = "-";
+            // --- 1. PARCHE PARA CAMPOS OPCIONALES ---
+            // Si el usuario no escribe dirección, le ponemos un guion "-"
+            // para que la Base de Datos no explote.
             if (string.IsNullOrEmpty(colegio.Direccion)) colegio.Direccion = "-";
+
+            // Lo mismo para otros campos que quieras opcionales:
             if (string.IsNullOrEmpty(colegio.Ciudad)) colegio.Ciudad = "-";
             if (string.IsNullOrEmpty(colegio.Telefono)) colegio.Telefono = "-";
+            if (string.IsNullOrEmpty(colegio.Email)) colegio.Email = "-";
 
-            // 2. Limpiamos los errores de validación de esos campos
-            ModelState.Remove("Email");
+            // --- 2. QUITAR ERRORES DE VALIDACIÓN ---
+            // Le decimos a C#: "Ignora si estos campos están vacíos"
             ModelState.Remove("Direccion");
             ModelState.Remove("Ciudad");
             ModelState.Remove("Telefono");
+            ModelState.Remove("Email");
+            ModelState.Remove("VendedorResponsable"); // Este se calcula solo
 
-            // 3. Ahora sí verificamos
+            // --- 3. LÓGICA DE ZONAS (Tu código existente) ---
+            if (!string.IsNullOrEmpty(colegio.Zona))
+            {
+                var vendedorZona = _context.Usuarios
+                    .FirstOrDefault(u => u.Rol == "Vendedor" && u.Zona == colegio.Zona && u.EstaActivo);
+
+                if (vendedorZona != null)
+                {
+                    colegio.VendedorResponsable = $"{vendedorZona.Nombre} {vendedorZona.Apellido}";
+                }
+                else
+                {
+                    colegio.VendedorResponsable = "Admin (Zona Libre)";
+                }
+            }
+            else
+            {
+                colegio.VendedorResponsable = "Sin Asignar";
+            }
+
+            // --- 4. GUARDAR ---
             if (ModelState.IsValid)
             {
                 _context.Colegios.Add(colegio);
                 _context.SaveChanges();
-
-                // Redirigir a Ver Escuelas (Index) o al Dashboard, lo que prefieras
                 return RedirectToAction("Index");
             }
 
-            // Si llega acá es porque falló (ej: faltó el Nombre).
             return View(colegio);
         }
         // GET: /Colegios/Editar/5

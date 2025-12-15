@@ -1,35 +1,46 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema; // Necesario para [NotMapped]
+using System.Linq;
 
 namespace InCollege.Dominio.Modelos
 {
     public class Estudiante
     {
-        [Key]
-        public Guid Id { get; set; } = Guid.NewGuid();
+        public Guid Id { get; set; }
 
-        public string Nombre { get; set; }
-        public string Apellido { get; set; }
+        [Required]
+        public string NombreCompleto { get; set; } // Ahora se puede escribir
 
-        // Propiedad calculada (no se guarda en DB, solo sirve para mostrar fácil)
-        [NotMapped]
-        public string NombreCompleto => $"{Apellido}, {Nombre}";
-
-        public string? Dni { get; set; }
-
-        public bool EstaAlDia { get; set; } = true;
-
-        // AJUSTE: Definimos la precisión del dinero para que SQL no tire warnings
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal TotalPagado { get; set; } = 0;
-
+        // --- DATOS DEL CONTRATO (Curso y División) ---
+        public string Curso { get; set; } = "6to";
+        public string Division { get; set; } = "Única";
         public string CodigoUnico { get; set; }
-        public string? TalleAbrigo { get; set; } // Para Buzo o Campera
-        public string? TalleRemera { get; set; } // Para Remera o Chomba
 
+        // --- DATOS DEL PADRÓN (Pagos y Talles) ---
+        public decimal TotalPagado { get; set; } = 0;
+        public bool EstaAlDia { get; set; } = true;
+        public string TalleRemera { get; set; }
+        public string TalleAbrigo { get; set; }
+
+        // --- TRUCO DE COMPATIBILIDAD ---
+        // Agregamos un "set" vacío para que el controlador no de error al intentar escribir.
+        [NotMapped]
+        public string Nombre
+        {
+            get => NombreCompleto?.Split(' ').FirstOrDefault() ?? "";
+            set { /* Ignoramos la escritura, usamos NombreCompleto */ }
+        }
+
+        [NotMapped]
+        public string Apellido
+        {
+            get => NombreCompleto?.Split(' ').Skip(1).FirstOrDefault() ?? "";
+            set { /* Ignoramos la escritura, usamos NombreCompleto */ }
+        }
+
+        // Relación
         public Guid ContratoId { get; set; }
-        [ForeignKey("ContratoId")]
-        public virtual Contrato Contrato { get; set; }
+        public Contrato Contrato { get; set; }
     }
 }

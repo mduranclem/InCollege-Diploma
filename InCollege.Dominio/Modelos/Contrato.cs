@@ -12,6 +12,7 @@ namespace InCollege.Dominio.Modelos
 
         // Código inteligente (Ej: 251201)
         public int Codigo { get; set; }
+        public DateTime? FechaFirma { get; set; }
 
         // DATOS DEL CLIENTE
         public Guid ColegioId { get; set; }

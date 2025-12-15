@@ -9,6 +9,8 @@ namespace InCollege.Dominio.Modelos
         public string Apellido { get; set; }
         public string Email { get; set; }
         public string Password { get; set; }
+        public string Zona { get; set; } // Ej: "Norte", "Sur", "Oeste"
+        public DateTime FechaAlta { get; set; } = DateTime.Now;
 
         // NUEVO: Define qué permisos tiene (Admin, Estudiante, Invitado)
         public string Rol { get; set; } = "SinAsignar";

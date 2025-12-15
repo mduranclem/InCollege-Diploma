@@ -46,8 +46,9 @@ namespace InCollege.Dominio.Servicios
                     }
 
                     // Tus correos de admin
-                    mail.To.Add("mduranclem@gmail.com");
+                    mail.To.Add("valeriaclementiduran@gmail.com");
                     mail.To.Add("matuuduranlalo@gmail.com");
+
 
                     mail.Subject = asunto;
                     mail.Body = cuerpo;

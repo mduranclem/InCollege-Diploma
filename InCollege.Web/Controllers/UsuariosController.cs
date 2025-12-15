@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using InCollege.Datos;
 using InCollege.Dominio.Modelos;
-using InCollege.Web.Models; // Necesario para el ViewModel
+using InCollege.Web.Models;
+using InCollege.Dominio.Servicios;
 using System.Linq;
 using System;
 
@@ -16,42 +18,80 @@ namespace InCollege.Web.Controllers
             _context = context;
         }
 
-        // GET: Muestra el panel unificado
+        // 1. GESTIÓN
         public IActionResult Gestionar()
         {
             var viewModel = new GestionUsuariosViewModel
             {
-                // Lista de los que pidieron cuenta
-                Pendientes = _context.Usuarios
-                    .Where(u => !u.EstaActivo)
-                    .OrderByDescending(u => u.Apellido)
-                    .ToList(),
-
-                // Lista de los que ya trabajan
-                Activos = _context.Usuarios
-                    .Where(u => u.EstaActivo)
-                    .OrderBy(u => u.Apellido)
-                    .ToList()
+                Pendientes = _context.Usuarios.Where(u => !u.EstaActivo).OrderByDescending(u => u.FechaAlta).ToList(),
+                Activos = _context.Usuarios.Where(u => u.EstaActivo).OrderBy(u => u.Apellido).ToList()
             };
-
             return View(viewModel);
         }
 
-        // ACCIÓN: APROBAR Y ASIGNAR ROL
+        // 2. CREAR (GET)
+        public IActionResult Crear()
+        {
+            ViewBag.Roles = new SelectList(new[] { "Vendedor", "Producción", "Gerente", "Administrador" });
+            ViewBag.Zonas = new SelectList(new[] { "Norte", "Sur", "Oeste", "Centro", "Alrededores" });
+            return View();
+        }
+
+        // 3. CREAR (POST)
         [HttpPost]
-        public IActionResult Aprobar(Guid id, string rolAsignado)
+        [ValidateAntiForgeryToken]
+        public IActionResult Crear(Usuario usuario)
+        {
+            if (usuario.Rol == "Vendedor" && string.IsNullOrEmpty(usuario.Zona))
+            {
+                ModelState.AddModelError("Zona", "Si el rol es Vendedor, debe asignar una Zona.");
+            }
+
+            if (_context.Usuarios.Any(u => u.Email == usuario.Email))
+            {
+                ModelState.AddModelError("Email", "El correo ya existe.");
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    usuario.FechaAlta = DateTime.Now;
+                    usuario.EstaActivo = false;
+                    _context.Usuarios.Add(usuario);
+                    _context.SaveChanges();
+
+                    try { EmailService.Enviar("", "Bienvenido", $"Hola {usuario.Nombre}, tu cuenta está en revisión."); } catch { }
+
+                    return RedirectToAction("Login", "Home");
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", "Error: " + ex.Message);
+                }
+            }
+
+            ViewBag.Roles = new SelectList(new[] { "Vendedor", "Producción", "Gerente", "Administrador" });
+            ViewBag.Zonas = new SelectList(new[] { "Norte", "Sur", "Oeste", "Centro", "Alrededores" });
+            return View(usuario);
+        }
+
+        // 4. APROBAR
+        [HttpPost]
+        public IActionResult Aprobar(Guid id, string rolAsignado, string zonaAsignada)
         {
             var usuario = _context.Usuarios.Find(id);
             if (usuario != null)
             {
                 usuario.EstaActivo = true;
-                usuario.Rol = rolAsignado; // Guardamos el rol que eligió el admin
+                usuario.Rol = rolAsignado;
+                usuario.Zona = (rolAsignado == "Vendedor") ? zonaAsignada : "-";
                 _context.SaveChanges();
             }
             return RedirectToAction("Gestionar");
         }
 
-        // ACCIÓN: RECHAZAR / ELIMINAR
+        // 5. ELIMINAR
         [HttpPost]
         public IActionResult Eliminar(Guid id)
         {
@@ -64,17 +104,19 @@ namespace InCollege.Web.Controllers
             return RedirectToAction("Gestionar");
         }
 
-        // ACCIÓN: CAMBIAR ROL (Para usuarios ya activos)
+        // 6. CAMBIAR ROL
         [HttpPost]
-        public IActionResult CambiarRol(Guid id, string nuevoRol)
+        public IActionResult CambiarRol(Guid id, string nuevoRol, string nuevaZona)
         {
             var usuario = _context.Usuarios.Find(id);
             if (usuario != null)
             {
                 usuario.Rol = nuevoRol;
+                usuario.Zona = (nuevoRol == "Vendedor") ? nuevaZona : "-";
                 _context.SaveChanges();
             }
             return RedirectToAction("Gestionar");
         }
+
     }
-}
+} 

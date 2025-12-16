@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace InCollege.Datos.Migrations
 {
     /// <inheritdoc />
-    public partial class ReinicioTotal : Migration
+    public partial class MigracionBaseNuevaCompleta : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -37,6 +37,8 @@ namespace InCollege.Datos.Migrations
                     Direccion = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ContactoPrincipal = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Zona = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    VendedorResponsable = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Telefono = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Ciudad = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
@@ -63,6 +65,24 @@ namespace InCollege.Datos.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Talleres",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Nombre = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Especialidad = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Responsable = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Telefono = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Direccion = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Activo = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Talleres", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Usuarios",
                 columns: table => new
                 {
@@ -71,8 +91,12 @@ namespace InCollege.Datos.Migrations
                     Apellido = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Zona = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    FechaAlta = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Rol = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    EstaActivo = table.Column<bool>(type: "bit", nullable: false)
+                    EstaActivo = table.Column<bool>(type: "bit", nullable: false),
+                    TokenRecuperacion = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TokenExpiracion = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -85,6 +109,7 @@ namespace InCollege.Datos.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Codigo = table.Column<int>(type: "int", nullable: false),
+                    FechaFirma = table.Column<DateTime>(type: "datetime2", nullable: true),
                     ColegioId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     NombreColegio = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ProductoId = table.Column<int>(type: "int", nullable: false),
@@ -98,7 +123,12 @@ namespace InCollege.Datos.Migrations
                     CantidadCuotas = table.Column<int>(type: "int", nullable: false),
                     MontoPorCuota = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Estado = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    VendedorAsignado = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    VendedorAsignado = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    TallerAsignadoId = table.Column<int>(type: "int", nullable: true),
+                    NombreTaller = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    EtapaProduccion = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UrlImagenDiseno = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    EstadoDiseno = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -108,7 +138,7 @@ namespace InCollege.Datos.Migrations
                         column: x => x.ColegioId,
                         principalTable: "Colegios",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -116,14 +146,14 @@ namespace InCollege.Datos.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Nombre = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Apellido = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Dni = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    EstaAlDia = table.Column<bool>(type: "bit", nullable: false),
-                    TotalPagado = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    NombreCompleto = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Curso = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Division = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CodigoUnico = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    TalleAbrigo = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    TalleRemera = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TotalPagado = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    EstaAlDia = table.Column<bool>(type: "bit", nullable: false),
+                    TalleRemera = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    TalleAbrigo = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ContratoId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
@@ -135,6 +165,28 @@ namespace InCollege.Datos.Migrations
                         principalTable: "Contratos",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MovimientosStock",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Fecha = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Tipo = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Cantidad = table.Column<int>(type: "int", nullable: false),
+                    Detalle = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    ContratoId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MovimientosStock", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MovimientosStock_Contratos_ContratoId",
+                        column: x => x.ContratoId,
+                        principalTable: "Contratos",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -178,6 +230,11 @@ namespace InCollege.Datos.Migrations
                 column: "ContratoId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_MovimientosStock_ContratoId",
+                table: "MovimientosStock",
+                column: "ContratoId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Pagos_ContratoId",
                 table: "Pagos",
                 column: "ContratoId");
@@ -195,10 +252,16 @@ namespace InCollege.Datos.Migrations
                 name: "Auditorias");
 
             migrationBuilder.DropTable(
+                name: "MovimientosStock");
+
+            migrationBuilder.DropTable(
                 name: "Pagos");
 
             migrationBuilder.DropTable(
                 name: "Productos");
+
+            migrationBuilder.DropTable(
+                name: "Talleres");
 
             migrationBuilder.DropTable(
                 name: "Usuarios");

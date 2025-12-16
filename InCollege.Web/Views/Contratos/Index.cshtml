@@ -3,258 +3,293 @@
 
 @{
     ViewData["Title"] = "Listado de Contratos";
+    Layout = null; // Layout personalizado
 
-    // --- LÓGICA INTELIGENTE DE RETORNO ---
+    // --- LÓGICA INTELIGENTE DE RETORNO Y PERMISOS ---
     string rolUsuario = Context.Session.GetString("UsuarioRol");
-    string linkVolver = (rolUsuario == "Vendedor") ? "/Home/PanelVendedor" : "/Home/PanelAdmin";
+
+    // Define a dónde vuelve el botón "Volver"
+    // Define a dónde vuelve el botón "Volver"
+    string linkVolver = "/Home/Index";
+
+    // CORRECCIÓN:
+    if (rolUsuario == "Disenador" || rolUsuario == "Diseñador")
+    {
+        linkVolver = "/Disenos/Panel";
+    } // Si tienes un action específico o usa Index ocultando cosas
+
+    bool esAdmin = rolUsuario == "Admin";
+    bool esDisenador = rolUsuario == "Disenador";
 }
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contratos - InCollege</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
-<style>
-    :root {
-        --brand-green: #1e6f42;
-        --brand-green-hover: #145230;
-        --card-bg: rgba(12, 12, 12, 0.98);
-    }
+    <style>
+        :root {
+            --brand-green: #1e6f42;
+            --brand-green-hover: #145230;
+            --card-bg: rgba(12, 12, 12, 0.98);
+        }
 
-    body {
-        background-image: url('/interior.jpeg');
-        background-size: cover;
-        background-position: center;
-        background-attachment: fixed;
-        background-color: #000;
-        color: white;
-    }
+        body {
+            background-image: url('/interior.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-color: #000;
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+        }
 
-    .main-container {
-        width: 95%;
-        margin: 0 auto;
-        padding-top: 30px;
-    }
+        .main-container {
+            width: 95%;
+            margin: 0 auto;
+            padding-top: 30px;
+            padding-bottom: 50px;
+        }
 
-    /* TARJETA DE LA TABLA */
-    .card-dark {
-        background-color: var(--card-bg);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        border-radius: 12px;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.9);
-        overflow: hidden;
-    }
+        /* TARJETA DE LA TABLA */
+        .card-dark {
+            background-color: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+            overflow: hidden;
+            padding: 20px;
+        }
 
-    /* ENCABEZADO */
-    .header-title {
-        font-size: 2.5rem;
-        font-weight: 900;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        margin: 0;
-        border-left: 10px solid var(--brand-green);
-        padding-left: 20px;
-    }
-
-    /* TABLA GIGANTE */
-    .table-massive {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-        .table-massive th {
-            background-color: rgba(255, 255, 255, 0.05);
-            color: #aaa;
-            font-size: 1.1rem; /* Ajustado */
+        /* ENCABEZADO */
+        .header-title {
+            font-size: 2.5rem;
+            font-weight: 900;
             text-transform: uppercase;
-            padding: 25px;
-            text-align: left;
-            border-bottom: 4px solid #333;
+            letter-spacing: 2px;
+            margin: 0;
+            border-left: 10px solid var(--brand-green);
+            padding-left: 20px;
         }
 
-        .table-massive td {
-            padding: 25px;
+        /* TABLA GIGANTE */
+        .table-massive {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+            .table-massive th {
+                background-color: rgba(255, 255, 255, 0.05);
+                color: #aaa;
+                font-size: 1.1rem;
+                text-transform: uppercase;
+                padding: 25px;
+                text-align: left;
+                border-bottom: 4px solid #333;
+            }
+
+            .table-massive td {
+                padding: 25px;
+                font-size: 1.2rem;
+                border-bottom: 1px solid #333;
+                color: white;
+                vertical-align: middle;
+            }
+
+            .table-massive tr:hover td {
+                background-color: rgba(255, 255, 255, 0.05);
+            }
+
+        /* BOTONES */
+        .btn-new {
+            background-color: var(--brand-green);
+            color: white;
+            border: none;
+            font-weight: 800;
+            padding: 15px 30px;
             font-size: 1.2rem;
-            border-bottom: 1px solid #333;
-            color: white;
-            vertical-align: middle;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-block;
         }
 
-        .table-massive tr:hover td {
-            background-color: rgba(255, 255, 255, 0.05);
+            .btn-new:hover {
+                background-color: var(--brand-green-hover);
+                color: white;
+            }
+
+        .btn-back {
+            background-color: transparent;
+            border: 2px solid #555;
+            color: #ddd;
+            font-weight: 700;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-block;
         }
 
-    /* BOTONES */
-    .btn-new {
-        background-color: var(--brand-green);
-        color: white;
-        border: none;
-        font-weight: 800;
-        padding: 15px 30px;
-        font-size: 1.2rem;
-        border-radius: 8px;
-        text-decoration: none;
-    }
+            .btn-back:hover {
+                border-color: white;
+                color: white;
+                background-color: #222;
+            }
 
-        .btn-new:hover {
-            background-color: var(--brand-green-hover);
-            color: white;
+        .action-icon-btn {
+            background-color: transparent;
+            border: 1px solid #555;
+            color: #888;
+            padding: 10px 15px;
+            border-radius: 6px;
+            transition: 0.3s;
+            font-size: 1.2rem;
+            display: inline-block;
         }
 
-    .btn-back {
-        background-color: transparent;
-        border: 2px solid #555;
-        color: #ddd;
-        font-weight: 700;
-        padding: 15px 30px;
-        font-size: 1.2rem;
-        border-radius: 8px;
-        text-decoration: none;
-    }
-
-        .btn-back:hover {
-            border-color: white;
-            color: white;
-            background-color: #222;
+        .btn-edit:hover {
+            border-color: #ffc107;
+            color: #ffc107;
+            background-color: rgba(255, 193, 7, 0.1);
         }
 
-    /* ESTILO PARA LOS BOTONES DE ACCIÓN (LÁPIZ Y BASURA) */
-    .action-icon-btn {
-        background-color: transparent;
-        border: 1px solid #555;
-        color: #888;
-        padding: 10px 15px;
-        border-radius: 6px;
-        transition: 0.3s;
-        font-size: 1.2rem;
-    }
+        .btn-delete:hover {
+            border-color: #dc3545;
+            color: #dc3545;
+            background-color: rgba(220, 53, 69, 0.1);
+        }
+    </style>
+</head>
+<body>
 
-    .btn-edit:hover {
-        border-color: #ffc107;
-        color: #ffc107;
-        background-color: rgba(255, 193, 7, 0.1);
-    }
+    <div class="main-container">
 
-    .btn-delete:hover {
-        border-color: #dc3545;
-        color: #dc3545;
-        background-color: rgba(220, 53, 69, 0.1);
-    }
+        <div class="d-flex justify-content-between align-items-center mb-5 p-4 card-dark">
+            <div>
+                <h1 class="header-title">CONTRATOS VIGENTES</h1>
+                <p class="text-secondary ms-4 mt-2 mb-0" style="font-size: 1.2rem;">Gestión de acuerdos comerciales</p>
+            </div>
+            <div class="d-flex gap-3">
+                <a href="@linkVolver" class="btn-back">VOLVER AL PANEL</a>
 
-</style>
-
-<div class="main-container">
-
-    <div class="d-flex justify-content-between align-items-center mb-5 p-4 card-dark">
-        <div>
-            <h1 class="header-title">CONTRATOS VIGENTES</h1>
-            <p class="text-secondary ms-4 mt-2 mb-0" style="font-size: 1.2rem;">Gestión de acuerdos comerciales</p>
+                @if (!esDisenador)
+                {
+                    <a href="/Contratos/Crear" class="btn-new shadow">+ NUEVO</a>
+                }
+            </div>
         </div>
-        <div class="d-flex gap-3">
-            <a href="@linkVolver" class="btn-back">VOLVER AL PANEL</a>
-            <a href="/Contratos/Crear" class="btn-new shadow">+ NUEVO</a>
-        </div>
-    </div>
 
-    <div class="card-dark mb-5">
-        <div class="table-responsive">
-            <table class="table-massive">
-                <thead>
-                    <tr>
-                        <th class="ps-5">N° CONTRATO</th>
-                        <th>INSTITUCIÓN</th>
-                        <th>PRODUCTO / PACK</th>
-                        <th>CANT.</th>
-                        <th>PRECIO U.</th>
-                        <th>ESTADO</th>
-                        <th class="text-end pe-5">ACCIONES</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    @if (!Model.Any())
-                    {
+        <div class="card-dark mb-5">
+            <div class="table-responsive">
+                <table class="table-massive">
+                    <thead>
                         <tr>
-                            <td colspan="7" class="text-center py-5 text-secondary">
-                                <i class="bi bi-folder-x display-1 opacity-25"></i>
-                                <p class="fs-3 mt-3">No hay contratos registrados.</p>
-                            </td>
+                            <th class="ps-5">N° CONTRATO</th>
+                            <th>INSTITUCIÓN</th>
+                            <th>PRODUCTO / PACK</th>
+                            <th>CANT.</th>
+                            <th>PRECIO U.</th>
+                            <th>ESTADO</th>
+                            <th class="text-end pe-5">ACCIONES</th>
                         </tr>
-                    }
-                    else
-                    {
-                        @foreach (var item in Model)
+                    </thead>
+
+                    <tbody>
+                        @if (!Model.Any())
                         {
                             <tr>
-                                <td class="ps-5">
-                                    <span class="badge bg-dark border border-secondary text-white fs-5" style="font-family: monospace;">
-                                        @item.Codigo
-                                    </span>
-                                </td>
-
-                                <td class="fw-bold text-white">@item.NombreColegio</td>
-
-                                <td style="color: #4ade80;">@item.NombreProducto</td>
-
-                                <td>@item.CantidadEgresados</td>
-
-                                <td>$ @item.PrecioUnitario.ToString("N0")</td>
-
-                                <td>
-                                    @if (item.Estado == "Presupuesto")
-                                    {
-                                        <span class="badge bg-secondary fs-6 px-3 py-2">Presupuesto</span>
-                                    }
-                                    else if (item.Estado == "En Producción")
-                                    {
-
-                                        <span class="badge bg-warning text-dark fs-6 px-3 py-2">En Taller</span>
-                                    }
-                                    else if (item.Estado == "Perdido")
-                                    {
-
-                                        <span class="badge bg-dark border border-secondary text-secondary fs-6 px-3 py-2">Perdido</span>
-                                    }
-                                    else
-                                    {
-
-                                        <span class="badge bg-success fs-6 px-3 py-2">@item.Estado</span>
-                                    }
-                                </td>
-
-                                <td class="text-end pe-5 d-flex justify-content-end gap-2">
-
-                                    @if (item.Estado == "Presupuesto")
-                                    {
-                                        /* Si es Presupuesto, mostramos Firmar */
-                                        <form action="/Contratos/Firmar" method="post" style="display:inline;">
-                                            <input type="hidden" name="id" value="@item.Id" />
-                                            <button type="submit" class="btn btn-success px-3 py-2 fw-bold" title="Firmar"><i class="bi bi-check-lg"></i></button>
-                                        </form>
-                                        <form action="/Contratos/Cancelar" method="post" style="display:inline;">
-                                            <input type="hidden" name="id" value="@item.Id" />
-                                            <button type="submit" class="btn btn-outline-danger px-3 py-2 fw-bold" title="Cancelar"><i class="bi bi-x-lg"></i></button>
-                                        </form>
-                                    }
-                                    else
-                                    {
-                                        /* Si ya está activo, mostramos Detalle */
-                                        <a href="/Contratos/Detalle/@item.Id" class="btn btn-outline-light px-3 py-2" style="font-weight:bold;">DETALLE</a>
-                                    }
-
-                                    <a href="/Contratos/Editar/@item.Id" class="action-icon-btn btn-edit" title="Editar">
-                                        <i class="bi bi-pencil-fill"></i>
-                                    </a>
-
-                                    <form action="/Contratos/Eliminar" method="post" onsubmit="return confirm('¿Eliminar este contrato? Se perderán los datos asociados.');">
-                                        <input type="hidden" name="id" value="@item.Id" />
-                                        <button type="submit" class="action-icon-btn btn-delete" title="Eliminar">
-                                            <i class="bi bi-trash-fill"></i>
-                                        </button>
-                                    </form>
+                                <td colspan="7" class="text-center py-5 text-secondary">
+                                    <i class="bi bi-folder-x display-1 opacity-25"></i>
+                                    <p class="fs-3 mt-3">No hay contratos registrados.</p>
                                 </td>
                             </tr>
                         }
-                    }
-                </tbody>
-            </table>
+                        else
+                        {
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td class="ps-5">
+                                        <span class="badge bg-dark border border-secondary text-white fs-5" style="font-family: monospace;">
+                                            @item.Codigo
+                                        </span>
+                                    </td>
+
+                                    <td class="fw-bold text-white">@item.NombreColegio</td>
+                                    <td style="color: #4ade80;">@item.NombreProducto</td>
+                                    <td>@item.CantidadEgresados</td>
+                                    <td>$ @item.PrecioUnitario.ToString("N0")</td>
+
+                                    <td>
+                                        @if (item.Estado == "Presupuesto")
+                                        {
+                                            <span class="badge bg-secondary fs-6 px-3 py-2">Presupuesto</span>
+                                        }
+                                        else if (item.Estado == "En Producción")
+                                        {
+                                            <span class="badge bg-warning text-dark fs-6 px-3 py-2">En Taller</span>
+                                        }
+                                        else if (item.Estado == "Perdido")
+                                        {
+                                            <span class="badge bg-dark border border-secondary text-secondary fs-6 px-3 py-2">Perdido</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success fs-6 px-3 py-2">@item.Estado</span>
+                                        }
+                                    </td>
+
+                                    <td class="text-end pe-5">
+
+                                        @if (!esDisenador)
+                                        {
+                                            <div class="d-flex justify-content-end gap-2">
+                                                @if (item.Estado == "Presupuesto")
+                                                {
+                                                    <form action="/Contratos/Firmar" method="post" style="display:inline;">
+                                                        <input type="hidden" name="id" value="@item.Id" />
+                                                        <button type="submit" class="btn btn-success px-3 py-2 fw-bold" title="Firmar"><i class="bi bi-check-lg"></i></button>
+                                                    </form>
+                                                    <form action="/Contratos/Cancelar" method="post" style="display:inline;">
+                                                        <input type="hidden" name="id" value="@item.Id" />
+                                                        <button type="submit" class="btn btn-outline-danger px-3 py-2 fw-bold" title="Cancelar"><i class="bi bi-x-lg"></i></button>
+                                                    </form>
+                                                }
+                                                else
+                                                {
+                                                    <a href="/Contratos/Detalle/@item.Id" class="btn btn-outline-light px-3 py-2" style="font-weight:bold;">DETALLE</a>
+                                                }
+
+                                                <a href="/Contratos/Editar/@item.Id" class="action-icon-btn btn-edit" title="Editar">
+                                                    <i class="bi bi-pencil-fill"></i>
+                                                </a>
+
+                                                <form action="/Contratos/Eliminar" method="post" onsubmit="return confirm('¿Eliminar este contrato? Se perderán los datos asociados.');">
+                                                    <input type="hidden" name="id" value="@item.Id" />
+                                                    <button type="submit" class="action-icon-btn btn-delete" title="Eliminar">
+                                                        <i class="bi bi-trash-fill"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            /* EL DISEÑADOR SOLO VE DETALLES */
+                                            <a href="/Contratos/Detalle/@item.Id" class="btn btn-outline-light px-3 py-2" style="font-weight:bold;">VER DETALLE</a>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-</div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -33,5 +33,7 @@ namespace InCollege.Dominio.Modelos
             EstaActivo = false;
             FechaAlta = DateTime.Now;
         }
+        public string? TokenRecuperacion { get; set; }
+        public DateTime? TokenExpiracion { get; set; }
     }
 }

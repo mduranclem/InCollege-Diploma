@@ -1,0 +1,137 @@
+﻿@using Microsoft.AspNetCore.Http
+@{
+    ViewData["Title"] = "Panel de Diseñador";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>Panel Diseñador - InCollege</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <style>
+        body {
+            background-image: url('/interior.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-color: #000;
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dashboard-container {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 40px;
+            border-radius: 15px;
+            border: 1px solid #333;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            max-width: 900px;
+            width: 95%;
+        }
+
+        .btn-menu {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 160px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid #444;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+
+            .btn-menu:hover {
+                background-color: #1e6f42; /* Verde InCollege */
+                border-color: #1e6f42;
+                transform: translateY(-5px);
+                color: white;
+                box-shadow: 0 5px 15px rgba(30, 111, 66, 0.4);
+            }
+
+            .btn-menu i {
+                font-size: 3.5rem;
+                margin-bottom: 15px;
+                color: #ccc;
+            }
+
+            .btn-menu:hover i {
+                color: white;
+            }
+
+            .btn-menu span {
+                font-size: 1.1rem;
+                font-weight: 800;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+
+        .logout-link {
+            color: #888;
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-top: 30px;
+            display: inline-block;
+            border: 1px solid #444;
+            padding: 8px 20px;
+            border-radius: 20px;
+            transition: 0.3s;
+        }
+
+            .logout-link:hover {
+                color: white;
+                border-color: white;
+                background-color: #333;
+            }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <h2 class="mb-1 text-uppercase fw-bold">Panel de Diseño</h2>
+
+        <p class="text-secondary mb-5">Hola @Context.Session.GetString("UsuarioNombre"), selecciona una opción:</p>
+
+        <div class="row">
+
+            <div class="col-md-4">
+                <a asp-controller="Colegios" asp-action="Index" class="btn-menu">
+                    <i class="bi bi-buildings"></i>
+                    <span>Ver Escuelas</span>
+                </a>
+            </div>
+
+            <div class="col-md-4">
+                <a asp-controller="Contratos" asp-action="Index" class="btn-menu">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <span>Ver Contratos</span>
+                </a>
+            </div>
+
+            <div class="col-md-4">
+                <a asp-controller="Disenos" asp-action="Index" class="btn-menu">
+                    <i class="bi bi-palette"></i>
+                    <span>Diseños</span>
+                </a>
+            </div>
+
+        </div>
+
+        <a asp-controller="Home" asp-action="CerrarSesion" class="logout-link">
+            <i class="bi bi-power me-2"></i> CERRAR SESIÓN
+        </a>
+    </div>
+
+</body>
+</html>

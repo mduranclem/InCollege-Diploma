@@ -7,28 +7,26 @@ namespace InCollege.Dominio.Modelos
     public class MovimientoStock
     {
         [Key]
-        public int Id { get; set; } // movimientoId
+        public int Id { get; set; }
 
-        [Required]
         public DateTime Fecha { get; set; } = DateTime.Now;
 
         [Required]
         [MaxLength(20)]
-        public string Tipo { get; set; } // Ej: "ENTRADA" o "SALIDA"
+        public string Tipo { get; set; } // Ej: "AVANCE", "PROBLEMA", "FINALIZADO"
 
         [Required]
-        public int Cantidad { get; set; } // Cantidad de insumo/prenda
+        public int Cantidad { get; set; }
 
         [MaxLength(200)]
-        public string Detalle { get; set; } // Ej: "Metros de tela Jersey", "Botones"
+        public string Detalle { get; set; }
 
-        // --- RELACIONES ---
+        // --- SOLO DEJAMOS LA RELACIÓN CON CONTRATO ---
+        public Guid? ContratoId { get; set; }
 
-        // 1. Relación con EtapaProduccion
-        // Nos permite saber en qué etapa se gastó este material
-        [Required]
-        public int EtapaId { get; set; }
-        [ForeignKey("EtapaId")]
-        public virtual EtapaProduccion Etapa { get; set; }
+        [ForeignKey("ContratoId")]
+        public virtual Contrato Contrato { get; set; }
+
+        // AQUÍ BORRAMOS LO DE 'EtapaId' Y 'EtapaProduccion' QUE DABA ERROR
     }
 }

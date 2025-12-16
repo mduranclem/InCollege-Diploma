@@ -160,46 +160,70 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var u in Model.Pendientes)
+                            @foreach (var item in Model.Pendientes)
                             {
                                 <tr>
-                                    <td class="fw-bold">@u.Apellido, @u.Nombre</td>
-                                    <td class="text-info">@u.Email</td>
+                                    <td class="align-middle text-white fw-bold">@item.Apellido, @item.Nombre</td>
+                                    <td class="align-middle text-secondary">@item.Email</td>
 
-                                    <td>
-                                        <form action="/Usuarios/Aprobar" method="post" class="d-flex align-items-center gap-2">
-                                            <input type="hidden" name="id" value="@u.Id" />
+                                    <td class="align-middle" colspan="2">
+                                        <form asp-action="AprobarUsuario" method="post" class="d-flex align-items-center gap-2">
+                                            <input type="hidden" name="userId" value="@item.Id" />
 
-                                            <select name="rolAsignado" class="role-select" style="width: 130px;" required>
+                                            <select name="rol" id="rol-@item.Id" class="form-select bg-dark text-white border-secondary btn-sm"
+                                                    required onchange="mostrarZona('@item.Id')">
                                                 <option value="" disabled selected>Rol...</option>
                                                 <option value="Vendedor">Vendedor</option>
                                                 <option value="Producción">Producción</option>
                                                 <option value="Gerente">Gerente</option>
-                                                <option value="Administrador">Admin</option>
+                                                <option value="Admin">Admin</option>
+                                                <option value="Disenador">Diseñador</option>
                                             </select>
 
-                                            <select name="zonaAsignada" class="role-select" style="width: 140px;" title="Zona de Venta (Solo para Vendedores)">
-                                                <option value="" selected>Sin Zona...</option>
-                                                <option value="Norte">Zona Norte</option>
-                                                <option value="Sur">Zona Sur</option>
-                                                <option value="Oeste">Zona Oeste</option>
-                                                <option value="Centro">Zona Centro</option>
-                                                <option value="Alrededores">Alrededores</option>
-                                            </select>
+                                            <div id="div-zona-@item.Id" style="display: none;">
+                                                <select name="zona" class="form-select bg-dark text-white border-secondary btn-sm">
+                                                    <option value="" selected>Sin Zona...</option>
+                                                    <option value="Norte">Norte</option>
+                                                    <option value="Sur">Sur</option>
+                                                    <option value="Este">Este</option>
+                                                    <option value="Oeste">Oeste</option>
+                                                    <option value="Centro">Centro</option>
+                                                </select>
+                                            </div>
 
-                                            <button type="submit" class="btn-action btn-approve ms-2" title="Aprobar"><i class="bi bi-check-lg"></i></button>
-                                        </form>
-                                    </td>
+                                            <button type="submit" class="btn btn-success btn-sm" title="Aprobar">
+                                                <i class="bi bi-check-lg"></i>
+                                            </button>
 
-                                    <td class="text-end">
-                                        <form action="/Usuarios/Eliminar" method="post" style="display:inline;" onsubmit="return confirm('¿Rechazar solicitud?');">
-                                            <input type="hidden" name="id" value="@u.Id" />
-                                            <button type="submit" class="btn-action btn-reject" title="Rechazar"><i class="bi bi-x-lg"></i></button>
+                                            <a asp-action="EliminarUsuario" asp-route-id="@item.Id" class="btn btn-outline-danger btn-sm"
+                                               onclick="return confirm('¿Rechazar solicitud?');" title="Rechazar">
+                                                <i class="bi bi-x-lg"></i>
+                                            </a>
                                         </form>
                                     </td>
                                 </tr>
                             }
                         </tbody>
+
+                        <script>
+                            function mostrarZona(idUsuario) {
+                                // Obtenemos el valor del rol seleccionado
+                                var rolSeleccionado = document.getElementById('rol-' + idUsuario).value;
+
+                                // Obtenemos la cajita de la zona
+                                var divZona = document.getElementById('div-zona-' + idUsuario);
+
+                                // Si es Vendedor, mostramos la zona. Si no, la ocultamos.
+                                if (rolSeleccionado === 'Vendedor') {
+                                    divZona.style.display = 'block';
+                                    divZona.querySelector('select').setAttribute('required', 'required'); // Hacemos obligatorio elegir zona
+                                } else {
+                                    divZona.style.display = 'none';
+                                    divZona.querySelector('select').removeAttribute('required'); // Ya no es obligatorio
+                                    divZona.querySelector('select').value = ""; // Limpiamos la selección
+                                }
+                            }
+                        </script>
                     </table>
                 </div>
             </div>
@@ -224,47 +248,66 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var u in Model.Activos)
+                        @foreach (var item in Model.Activos)
                         {
                             <tr>
-                                <td class="fw-bold text-white">@u.Apellido, @u.Nombre</td>
-                                <td class="text-secondary">@u.Email</td>
+                                <td class="align-middle text-white fw-bold">@item.Apellido, @item.Nombre</td>
+                                <td class="align-middle text-secondary">@item.Email</td>
 
-                                <td>
-                                    <form action="/Usuarios/CambiarRol" method="post" class="d-flex align-items-center gap-2">
-                                        <input type="hidden" name="id" value="@u.Id" />
+                                <td class="align-middle">
+                                    <form asp-action="ActualizarUsuario" method="post" class="d-flex align-items-center gap-2">
+                                        <input type="hidden" name="userId" value="@item.Id" />
 
-                                        <select name="nuevaZona" class="role-select text-warning" style="width: 140px;" title="Zona Geográfica">
-                                            <option value="-" selected="@(u.Zona == "-" || u.Zona == null)">- (Sin Zona)</option>
-                                            <option value="Norte" selected="@(u.Zona == "Norte")">Norte</option>
-                                            <option value="Sur" selected="@(u.Zona == "Sur")">Sur</option>
-                                            <option value="Oeste" selected="@(u.Zona == "Oeste")">Oeste</option>
-                                            <option value="Centro" selected="@(u.Zona == "Centro")">Centro</option>
-                                            <option value="Alrededores" selected="@(u.Zona == "Alrededores")">Alrededores</option>
+                                        <select id="zona-@item.Id" name="zona" class="form-select bg-dark text-white border-secondary btn-sm"
+                                                style="width: 110px; display: @(item.Rol == "Vendedor" ? "block" : "none");">
+                                            <option value="" selected="@(string.IsNullOrEmpty(item.Zona))">- (Sin Zona)</option>
+                                            <option value="Norte" selected="@(item.Zona == "Norte")">Norte</option>
+                                            <option value="Sur" selected="@(item.Zona == "Sur")">Sur</option>
+                                            <option value="Este" selected="@(item.Zona == "Este")">Este</option>
+                                            <option value="Oeste" selected="@(item.Zona == "Oeste")">Oeste</option>
+                                            <option value="Centro" selected="@(item.Zona == "Centro")">Centro</option>
                                         </select>
 
-                                        <select name="nuevoRol" class="role-select" style="border-color: #444; width: 130px;">
-                                            <option value="Vendedor" selected="@(u.Rol == "Vendedor")">Vendedor</option>
-                                            <option value="Administrador" selected="@(u.Rol == "Administrador")">Administrador</option>
-                                            <option value="Producción" selected="@(u.Rol == "Producción")">Producción</option>
-                                            <option value="Gerente" selected="@(u.Rol == "Gerente")">Gerente</option>
+                                        <select id="rol-@item.Id" name="rol" class="form-select bg-dark text-white border-secondary btn-sm"
+                                                style="width: 130px;" onchange="toggleZonaActivo('@item.Id')">
+                                            <option value="Vendedor" selected="@(item.Rol == "Vendedor")">Vendedor</option>
+                                            <option value="Producción" selected="@(item.Rol == "Producción")">Producción</option>
+                                            <option value="Gerente" selected="@(item.Rol == "Gerente")">Gerente</option>
+                                            <option value="Admin" selected="@(item.Rol == "Admin")">Administrador</option>
+                                            <option value="Disenador" selected="@(item.Rol == "Disenador")">Diseñador</option>
                                         </select>
 
-                                        <button type="submit" class="btn-save-role" title="Guardar Cambios de Perfil">
+                                        <button type="submit" class="btn btn-primary btn-sm" title="Guardar Cambios">
                                             <i class="bi bi-floppy"></i>
                                         </button>
                                     </form>
                                 </td>
 
-                                <td class="text-end">
-                                    <form action="/Usuarios/Eliminar" method="post" onsubmit="return confirm('¿Despedir a este usuario? Se perderá su acceso.');">
-                                        <input type="hidden" name="id" value="@u.Id" />
-                                        <button class="btn btn-outline-danger btn-sm border-0"><i class="bi bi-trash"></i> Eliminar</button>
-                                    </form>
+                                <td class="align-middle text-end">
+                                    <a asp-action="EliminarUsuario" asp-route-id="@item.Id" class="btn btn-outline-danger btn-sm"
+                                       onclick="return confirm('¿Eliminar usuario del sistema?');">
+                                        <i class="bi bi-trash"></i> Eliminar
+                                    </a>
                                 </td>
                             </tr>
                         }
                     </tbody>
+                    <script>
+                        // Función para la tabla de PERSONAL ACTIVO
+                        function toggleZonaActivo(idUsuario) {
+                            // Buscamos los elementos por su ID único
+                            var selectRol = document.getElementById('rol-' + idUsuario);
+                            var selectZona = document.getElementById('zona-' + idUsuario);
+
+                            // Si elige Vendedor, mostramos la zona. Si no, la ocultamos.
+                            if (selectRol.value === 'Vendedor') {
+                                selectZona.style.display = 'block';
+                            } else {
+                                selectZona.style.display = 'none';
+                                selectZona.value = ""; // Opcional: limpiar la zona si deja de ser vendedor
+                            }
+                        }
+                    </script>
                 </table>
             </div>
         </div>

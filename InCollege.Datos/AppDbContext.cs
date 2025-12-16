@@ -16,6 +16,7 @@ namespace InCollege.Datos
         public DbSet<Estudiante> Estudiantes { get; set; }
         public DbSet<Pago> Pagos { get; set; }
         public DbSet<Taller> Talleres { get; set; }
+        public DbSet<MovimientoStock> MovimientosStock { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -30,10 +31,10 @@ namespace InCollege.Datos
 
             // 1. Si borro un COLEGIO -> Se borran los CONTRATOS
             modelBuilder.Entity<Contrato>()
-                .HasOne<Colegio>()           // Un contrato tiene un colegio
-                .WithMany()                  // Un colegio tiene muchos contratos
-                .HasForeignKey(c => c.ColegioId)
-                .OnDelete(DeleteBehavior.Cascade); // <--- LA CLAVE MÁGICA
+         .HasOne(c => c.Colegio)
+         .WithMany() // Si Colegio tiene lista de contratos, pon .WithMany(c => c.Contratos)
+         .HasForeignKey(c => c.ColegioId)
+         .OnDelete(DeleteBehavior.Restrict);
 
             // 2. Si se borra un CONTRATO -> Se borran los ESTUDIANTES
             modelBuilder.Entity<Estudiante>()

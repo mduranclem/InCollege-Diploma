@@ -5,6 +5,12 @@ using System.ComponentModel.DataAnnotations.Schema; // Necesario para [Column]
 
 namespace InCollege.Dominio.Modelos
 {
+    // controla el estado (Pendiente / Aprobado)
+    public enum EstadoDiseno
+    {
+        Pendiente = 0,
+        Aprobado = 1
+    }
     public class Contrato
     {
         [Key]
@@ -17,6 +23,7 @@ namespace InCollege.Dominio.Modelos
         // DATOS DEL CLIENTE
         public Guid ColegioId { get; set; }
         public string NombreColegio { get; set; }
+        public virtual Colegio Colegio { get; set; }
 
         // DATOS DEL PRODUCTO
         public int ProductoId { get; set; }
@@ -53,5 +60,7 @@ namespace InCollege.Dominio.Modelos
         public int? TallerAsignadoId { get; set; } // El ID del taller (puede ser nulo si no se envió aun)
         public string? NombreTaller { get; set; } // Guardamos el nombre para mostrarlo fácil
         public string? EtapaProduccion { get; set; }
+        public string? UrlImagenDiseno { get; set; } // Aquí guardaremos la ruta de la imagen (ej: /imagenes/foto1.jpg)
+        public EstadoDiseno EstadoDiseno { get; set; } = EstadoDiseno.Pendiente; // Por defecto nace "Pendiente"
     }
 }

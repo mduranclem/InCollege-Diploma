@@ -119,6 +119,9 @@ namespace InCollege.Datos.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("EstadoDiseno")
+                        .HasColumnType("int");
+
                     b.Property<string>("EtapaProduccion")
                         .HasColumnType("nvarchar(max)");
 
@@ -160,6 +163,9 @@ namespace InCollege.Datos.Migrations
 
                     b.Property<int?>("TallerAsignadoId")
                         .HasColumnType("int");
+
+                    b.Property<string>("UrlImagenDiseno")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("VendedorAsignado")
                         .IsRequired()
@@ -216,6 +222,40 @@ namespace InCollege.Datos.Migrations
                     b.HasIndex("ContratoId");
 
                     b.ToTable("Estudiantes");
+                });
+
+            modelBuilder.Entity("InCollege.Dominio.Modelos.MovimientoStock", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("ContratoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Detalle")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContratoId");
+
+                    b.ToTable("MovimientosStock");
                 });
 
             modelBuilder.Entity("InCollege.Dominio.Modelos.Pago", b =>
@@ -329,6 +369,12 @@ namespace InCollege.Datos.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("TokenExpiracion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TokenRecuperacion")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Zona")
                         .HasColumnType("nvarchar(max)");
 
@@ -389,11 +435,13 @@ namespace InCollege.Datos.Migrations
 
             modelBuilder.Entity("InCollege.Dominio.Modelos.Contrato", b =>
                 {
-                    b.HasOne("InCollege.Dominio.Modelos.Colegio", null)
+                    b.HasOne("InCollege.Dominio.Modelos.Colegio", "Colegio")
                         .WithMany()
                         .HasForeignKey("ColegioId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Colegio");
                 });
 
             modelBuilder.Entity("InCollege.Dominio.Modelos.Estudiante", b =>
@@ -403,6 +451,15 @@ namespace InCollege.Datos.Migrations
                         .HasForeignKey("ContratoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Contrato");
+                });
+
+            modelBuilder.Entity("InCollege.Dominio.Modelos.MovimientoStock", b =>
+                {
+                    b.HasOne("InCollege.Dominio.Modelos.Contrato", "Contrato")
+                        .WithMany()
+                        .HasForeignKey("ContratoId");
 
                     b.Navigation("Contrato");
                 });

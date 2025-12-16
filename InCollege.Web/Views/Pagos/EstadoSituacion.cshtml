@@ -7,9 +7,10 @@
 
     var contrato = ViewBag.Contrato as Contrato;
     var listaPagos = (ViewBag.Pagos as List<Pago>) ?? new List<Pago>();
+    var balance = ViewBag.Balance as Dictionary<Guid, decimal>;
 
     decimal recargo = ViewBag.RecargoHoy ?? 0;
-    int cuotaVigente = ViewBag.CuotaVigente ?? 1; // Leemos la cuota actual calculada en el Controller
+    int cuotaVigente = ViewBag.CuotaVigente ?? 1;
     decimal precioBase = contrato.MontoPorCuota;
 }
 
@@ -67,6 +68,9 @@
                 border-right: 1px solid #333;
                 text-align: center;
                 min-width: 120px;
+                position: sticky;
+                top: 0;
+                z-index: 100;
             }
 
             .table-matrix td {
@@ -101,10 +105,11 @@
             border: 1px solid #198754;
             color: #4ade80;
             border-radius: 4px;
-            padding: 8px;
+            padding: 6px;
             font-weight: bold;
             font-size: 0.8rem;
-            display: block;
+            display: inline-block;
+            width: 100%;
         }
 
         .btn-pay-cell {
@@ -145,6 +150,21 @@
             animation: pulse 2s infinite;
         }
 
+        .btn-delete-pay {
+            background: transparent;
+            border: none;
+            color: #666;
+            padding: 0 5px;
+            margin-left: 5px;
+            transition: 0.3s;
+        }
+
+            .btn-delete-pay:hover {
+                color: #dc3545;
+                transform: scale(1.2);
+            }
+
+        /* CORRECCIÓN AQUÍ: Usamos @@keyframes para que Razor no de error */
         @@keyframes pulse {
             0% {
                 opacity: 1;
@@ -190,7 +210,7 @@
             <table class="table-matrix">
                 <thead>
                     <tr>
-                        <th class="sticky-col">ALUMNO / CÓDIGO</th>
+                        <th class="sticky-col text-start ps-4">ALUMNO / ESTADO</th>
                         <th style="min-width:100px; border-bottom-color: #ffc107;">SEÑA</th>
 
                         @for (int c = 1; c <= contrato.CantidadCuotas; c++)
@@ -202,19 +222,52 @@
                 <tbody>
                     @foreach (var est in Model)
                     {
+                        // CÁLCULOS DE ESTADO Y PLAN CAÍDO
+                        decimal pagado = balance.ContainsKey(est.Id) ? balance[est.Id] : 0;
+                        int cuotasPagadas = (int)(pagado / contrato.MontoPorCuota);
+                        int cuotasDeberiaTener = cuotaVigente;
+                        int atraso = cuotasDeberiaTener - cuotasPagadas;
+
+                        bool esPlanCaido = atraso >= 2;
+                        bool esDeudor = atraso > 0 && !esPlanCaido;
+
                         <tr>
                             <td class="sticky-col">
-                                <div class="text-white fw-bold">@est.Apellido, @est.Nombre</div>
-                                <div style="font-family: monospace; color: #555; font-size: 0.8rem;">@est.CodigoUnico</div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="text-white fw-bold">@est.Apellido, @est.Nombre</div>
+                                        <div style="font-family: monospace; color: #555; font-size: 0.8rem;">@est.CodigoUnico</div>
+                                    </div>
+                                    <div class="me-3">
+                                        @if (esPlanCaido)
+                                        {
+                                            <span class="badge bg-dark border border-danger text-danger">PLAN CAÍDO</span>
+                                        }
+                                        else if (esDeudor)
+                                        {
+                                            <span class="badge bg-warning text-dark border border-warning">DEUDA</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success border border-success text-white">AL DÍA</span>
+                                        }
+                                    </div>
+                                </div>
                             </td>
 
                             @{
-                                bool senaPaga = listaPagos.Any(p => p.EstudianteId == est.Id && (p.Concepto.Contains("Seña") || p.NumeroCuota == 0));
+                                var pagoSena = listaPagos.FirstOrDefault(p => p.EstudianteId == est.Id && (p.Concepto.Contains("Seña") || p.NumeroCuota == 0));
                             }
                             <td>
-                                @if (senaPaga)
+                                @if (pagoSena != null)
                                 {
-                                    <span class="status-paid" style="border-color: #ffc107; color: #ffc107; background-color: rgba(255,193,7,0.1);"><i class="bi bi-check-lg"></i> OK</span>
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <span class="status-paid" style="border-color: #ffc107; color: #ffc107; background-color: rgba(255,193,7,0.1); width: auto;">OK</span>
+                                        <form action="/Pagos/EliminarPago" method="post" onsubmit="return confirm('¿Eliminar la SEÑA de este alumno?');">
+                                            <input type="hidden" name="id" value="@pagoSena.Id" />
+                                            <button type="submit" class="btn-delete-pay" title="Eliminar Seña"><i class="bi bi-trash"></i></button>
+                                        </form>
+                                    </div>
                                 }
                                 else
                                 {
@@ -223,7 +276,6 @@
                                         <input type="hidden" name="estudianteId" value="@est.Id" />
                                         <input type="hidden" name="nroCuota" value="0" /> <input type="hidden" name="monto" value="@contrato.MontoSeña" />
                                         <input type="hidden" name="medio" value="Chequera" />
-
                                         <button type="submit" class="btn-pay-cell" style="color: #ffc107; border-color: #ffc107;">
                                             $@contrato.MontoSeña.ToString("N0")
                                         </button>
@@ -238,34 +290,36 @@
                                 <td>
                                     @if (pagoHecho != null)
                                     {
-                                        <span class="status-paid" title="Pagado el @pagoHecho.FechaPago.ToShortDateString()">
-                                            <i class="bi bi-check-circle-fill"></i> PAGO
-                                        </span>
+                                        <div class="d-flex align-items-center justify-content-center">
+                                            <span class="status-paid" title="Pagado el @pagoHecho.FechaPago.ToShortDateString()" style="width: auto; padding-right:5px;">PAGO</span>
+                                            <form action="/Pagos/EliminarPago" method="post" onsubmit="return confirm('¿Eliminar el pago de la CUOTA @c?');">
+                                                <input type="hidden" name="id" value="@pagoHecho.Id" />
+                                                <button type="submit" class="btn-delete-pay" title="Eliminar Pago"><i class="bi bi-trash"></i></button>
+                                            </form>
+                                        </div>
                                     }
                                     else
                                     {
-                                        // --- LÓGICA DE PRECIO CORRECTA ---
-                                        // Si la cuota es menor o igual a la actual, aplicamos recargo.
-                                        // Si es futura, precio base.
                                         decimal montoACobrar = precioBase;
-                                        if (c <= cuotaVigente && recargo > 0)
+                                        if (c <= cuotaVigente && recargo > 0) { montoACobrar += recargo; }
+
+                                        if (esPlanCaido)
                                         {
-                                            montoACobrar += recargo;
+                                            <span class="text-secondary small" title="Debe regularizar en sucursal"><i class="bi bi-lock-fill"></i> BLOQ</span>
                                         }
-
-                                        <form action="/Pagos/RegistrarPagoIndividual" method="post">
-                                            <input type="hidden" name="contratoId" value="@contrato.Id" />
-                                            <input type="hidden" name="estudianteId" value="@est.Id" />
-                                            <input type="hidden" name="nroCuota" value="@c" />
-
-                                            <input type="hidden" name="monto" value="@montoACobrar" />
-                                            <input type="hidden" name="medio" value="Chequera" />
-
-                                            <button type="submit" class="btn-pay-cell"
-                                                    style="@(montoACobrar > precioBase ? "color: #ffc107; border-color: #ffc107;" : "")">
-                                                $@montoACobrar.ToString("N0")
-                                            </button>
-                                        </form>
+                                        else
+                                        {
+                                            <form action="/Pagos/RegistrarPagoIndividual" method="post">
+                                                <input type="hidden" name="contratoId" value="@contrato.Id" />
+                                                <input type="hidden" name="estudianteId" value="@est.Id" />
+                                                <input type="hidden" name="nroCuota" value="@c" />
+                                                <input type="hidden" name="monto" value="@montoACobrar" />
+                                                <input type="hidden" name="medio" value="Chequera" />
+                                                <button type="submit" class="btn-pay-cell" style="@(montoACobrar > precioBase ? "color: #ffc107; border-color: #ffc107;" : "")">
+                                                    $@montoACobrar.ToString("N0")
+                                                </button>
+                                            </form>
+                                        }
                                     }
                                 </td>
                             }
@@ -273,9 +327,7 @@
                     }
                 </tbody>
             </table>
-
         </div>
     </div>
-
 </body>
 </html>

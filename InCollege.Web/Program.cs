@@ -1,5 +1,7 @@
-using Microsoft.EntityFrameworkCore;
 using InCollege.Datos;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using InCollege.Datos.Servicios; // Necesario para encontrar ContratoServicio
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,16 +9,26 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
 
-// 2. SERVICIOS
+// 2. SERVICIOS WEB
 builder.Services.AddControllersWithViews()
     .AddRazorRuntimeCompilation();
 
-// --- AGREGAR ESTA LÍNEA PARA ACTIVAR SESIONES ---
-builder.Services.AddSession();
-// -----------------------------------------------
+// 3. CONFIGURACIÓN DE SESIONES
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // Tiempo de vida de la sesión
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+// --- ¡ESTA ES LA LÍNEA QUE TE FALTABA! ---
+// Registramos el servicio para que el Controlador de Diseños funcione
+builder.Services.AddScoped<ContratoServicio>();
+// -------------------------------------------
 
 var app = builder.Build();
 
+// CONFIGURACIÓN DEL PIPELINE HTTP
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -29,9 +41,9 @@ app.UseRouting();
 
 app.UseAuthorization();
 
-// --- AGREGAR ESTA LÍNEA (ANTES DE MAPCONTROLLER) ---
+// --- ACTIVAR EL MOTOR DE SESIONES (ANTES DE RUTAS) ---
 app.UseSession();
-// ---------------------------------------------------
+// -----------------------------------------------------
 
 app.MapControllerRoute(
     name: "default",

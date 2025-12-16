@@ -18,15 +18,25 @@ namespace InCollege.Web.Controllers
             _context = context;
         }
 
-        // 1. GESTIÓN
+        // GET: Usuarios/Gestionar
         public IActionResult Gestionar()
         {
-            var viewModel = new GestionUsuariosViewModel
+            // 1. Obtener usuarios pendientes y activos (tu código actual)
+            var pendientes = _context.Usuarios.Where(u => !u.EstaActivo).ToList();
+            var activos = _context.Usuarios.Where(u => u.EstaActivo).ToList();
+
+            var modelo = new GestionUsuariosViewModel 
             {
-                Pendientes = _context.Usuarios.Where(u => !u.EstaActivo).OrderByDescending(u => u.FechaAlta).ToList(),
-                Activos = _context.Usuarios.Where(u => u.EstaActivo).OrderBy(u => u.Apellido).ToList()
+                Pendientes = pendientes,
+                Activos = activos
             };
-            return View(viewModel);
+
+            // --- AGREGAR "Disenador" A ESTA LISTA ---
+            // Importante: Escríbelo como "Disenador" (sin ñ) si así lo pusimos en el _Layout
+            ViewBag.ListaRoles = new List<string> { "Admin", "Vendedor", "Producción", "Gerente", "Disenador" };
+            // ----------------------------------------
+
+            return View(modelo);
         }
 
         // 2. CREAR (GET)
@@ -78,14 +88,30 @@ namespace InCollege.Web.Controllers
 
         // 4. APROBAR
         [HttpPost]
-        public IActionResult Aprobar(Guid id, string rolAsignado, string zonaAsignada)
+        [HttpPost]
+        public IActionResult AprobarUsuario(Guid userId, string rol, string zona)
         {
-            var usuario = _context.Usuarios.Find(id);
+            var usuario = _context.Usuarios.Find(userId);
             if (usuario != null)
             {
+                usuario.Rol = rol;
                 usuario.EstaActivo = true;
-                usuario.Rol = rolAsignado;
-                usuario.Zona = (rolAsignado == "Vendedor") ? zonaAsignada : "-";
+                usuario.FechaAlta = DateTime.Now;
+
+                // --- LÓGICA DE ZONA ---
+                if (rol == "Vendedor")
+                {
+                    // Si es vendedor, guardamos la zona que eligieron
+                    usuario.Zona = zona;
+                }
+                else
+                {
+                    // Si es Admin, Diseñador, etc., forzamos la zona a NULL o vacía
+                    // para que no quede basura en la base de datos.
+                    usuario.Zona = null;
+                }
+                // ----------------------
+
                 _context.SaveChanges();
             }
             return RedirectToAction("Gestionar");
@@ -117,6 +143,35 @@ namespace InCollege.Web.Controllers
             }
             return RedirectToAction("Gestionar");
         }
+        [HttpPost]
+        public IActionResult ActualizarUsuario(Guid userId, string rol, string zona)
+        {
+            // 1. Buscar al usuario en la base de datos
+            var usuario = _context.Usuarios.Find(userId);
 
+            if (usuario != null)
+            {
+                // 2. Actualizar el Rol
+                usuario.Rol = rol;
+
+                // 3. Lógica inteligente de Zona
+                if (rol == "Vendedor")
+                {
+                    // Si es vendedor, guardamos la zona que eligieron
+                    usuario.Zona = zona;
+                }
+                else
+                {
+                    // Si lo cambiaron a Diseñador, Admin, etc., borramos la zona
+                    usuario.Zona = null;
+                }
+
+                // 4. Guardar cambios en la Base de Datos
+                _context.SaveChanges();
+            }
+
+            // 5. Volver a la misma página
+            return RedirectToAction("Gestionar");
+        }
     }
 } 

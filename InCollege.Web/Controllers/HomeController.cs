@@ -18,7 +18,7 @@ namespace InCollege.Web.Controllers
 
             // --- SECCIÓN DE SEMILLA (SEEDING) ---
             // Se ejecuta cada vez que se llama al controlador si los datos no existen.
-            
+
             // 1. SEMILLA DE USUARIOS (Si no existe, crea Admin)
             if (!_context.Usuarios.Any())
             {
@@ -78,8 +78,14 @@ namespace InCollege.Web.Controllers
         {
             // Si el usuario ya está logueado, redirigirlo a su panel correspondiente
             var rol = HttpContext.Session.GetString("UsuarioRol");
-            if (rol == "Administrador") return RedirectToAction("PanelAdmin");
+
+            // CORRECCIÓN 1: Aceptamos ambos nombres para el admin en la redirección inicial
+            if (rol == "Administrador" || rol == "Admin") return RedirectToAction("PanelAdmin");
+
             if (rol == "Vendedor") return RedirectToAction("PanelVendedor");
+
+            // Redirige al nuevo controlador 'Disenos'
+            if (rol == "Diseñador" || rol == "Disenador") return RedirectToAction("Index", "Disenos");
 
             return View();
         }
@@ -110,7 +116,8 @@ namespace InCollege.Web.Controllers
                 HttpContext.Session.SetString("UsuarioNombre", usuario.Nombre);
                 // ------------------------------------------
 
-                if (usuario.Rol == "Administrador")
+                // CORRECCIÓN 2: Aceptamos ambos nombres en el Login
+                if (usuario.Rol == "Administrador" || usuario.Rol == "Admin")
                 {
                     return RedirectToAction("PanelAdmin");
                 }
@@ -118,10 +125,15 @@ namespace InCollege.Web.Controllers
                 {
                     return RedirectToAction("PanelVendedor");
                 }
+                else if (usuario.Rol == "Diseñador" || usuario.Rol == "Disenador")
+                {
+                    // CAMBIO IMPORTANTE: Redirigir a "Panel", no a "Index"
+                    return RedirectToAction("Panel", "Disenos");
+                }
                 else
                 {
-                    // Por defecto (o Taller/Diseñador en el futuro)
-                    return Content($"Hola {usuario.Nombre}. Tu panel está en construcción.");
+                    // Por defecto si el rol no coincide con nada conocido
+                    return Content($"Hola {usuario.Nombre}. Tu rol '{usuario.Rol}' no tiene panel asignado.");
                 }
             }
             else
@@ -169,8 +181,11 @@ namespace InCollege.Web.Controllers
 
         public IActionResult PanelAdmin()
         {
-            // Seguridad básica: Verificar Rol
-            if (HttpContext.Session.GetString("UsuarioRol") != "Administrador")
+            var rol = HttpContext.Session.GetString("UsuarioRol");
+
+            // CORRECCIÓN 3: Seguridad blindada para ambos nombres
+            // Si NO es Administrador Y TAMPOCO es Admin, entonces sácalo.
+            if (rol != "Administrador" && rol != "Admin")
                 return RedirectToAction("Index");
 
             // 1. CONTRATOS ACTIVOS (Ni Presupuesto, ni Perdidos)
@@ -189,8 +204,6 @@ namespace InCollege.Web.Controllers
             ViewBag.PendientesAprobacion = _context.Usuarios.Where(u => !u.EstaActivo).Count();
             ViewBag.ListaTalleres = _context.Talleres.Where(t => t.Activo).ToList();
 
-            var listaContratos = _context.Contratos.OrderByDescending(c => c.FechaCreacion).ToList();
-
             return View(contratos);
         }
 
@@ -205,12 +218,114 @@ namespace InCollege.Web.Controllers
             // Cargar datos para el vendedor (Contratos recientes)
             var contratos = _context.Contratos
                 .OrderByDescending(c => c.FechaCreacion)
-                .Take(10) 
+                .Take(10)
                 .ToList();
 
             ViewBag.TotalContratos = _context.Contratos.Count();
 
             return View(contratos);
+        }
+        // ==========================================
+        // RECUPERAR CONTRASEÑA
+        // ==========================================
+
+        // 1. VISTA: Pide el email
+        public IActionResult OlvidePassword()
+        {
+            return View();
+        }
+
+        // 2. PROCESO: Genera token y envía mail
+        [HttpPost]
+        public IActionResult OlvidePassword(string email)
+        {
+            var usuario = _context.Usuarios.FirstOrDefault(u => u.Email == email);
+
+            // Por seguridad, no decimos si el email existe o no, pero aquí actuamos si existe.
+            if (usuario != null)
+            {
+                // Generar Token único y fecha de expiración (1 hora)
+                string token = Guid.NewGuid().ToString();
+                usuario.TokenRecuperacion = token;
+                usuario.TokenExpiracion = DateTime.Now.AddHours(1);
+                _context.SaveChanges();
+
+                // Crear el link de recuperación
+                // Esto genera algo como: https://localhost:7048/Home/Restablecer?token=abc-123...
+                var link = Url.Action("Restablecer", "Home", new { token = token }, Request.Scheme);
+
+                // Enviar Email
+                string asunto = "Recuperar Contraseña - InCollege";
+                string cuerpo = $@"
+                    <h2>Hola {usuario.Nombre},</h2>
+                    <p>Recibimos una solicitud para restablecer tu contraseña.</p>
+                    <p>Haz clic en el siguiente enlace para crear una nueva clave:</p>
+                    <a href='{link}' style='background:#1e6f42; color:white; padding:10px 20px; text-decoration:none; border-radius:5px;'>RESTABLECER AHORA</a>
+                    <p>Este enlace expira en 1 hora.</p>";
+
+                try
+                {
+                    // Usamos tu servicio de Email existente (asegúrate de tener el using InCollege.Dominio.Servicios;)
+                    InCollege.Dominio.Servicios.EmailService.Enviar(usuario.Email, asunto, cuerpo);
+                }
+                catch (Exception ex)
+                {
+                    ViewBag.Error = "Error al enviar correo: " + ex.Message;
+                    return View();
+                }
+            }
+
+            ViewBag.Mensaje = "Si el correo existe, te hemos enviado las instrucciones.";
+            return View();
+        }
+
+        // 3. VISTA: Formulario para poner la nueva clave (Valida el token)
+        public IActionResult Restablecer(string token)
+        {
+            // Buscar usuario con ese token y que no haya expirado
+            var usuario = _context.Usuarios
+                .FirstOrDefault(u => u.TokenRecuperacion == token && u.TokenExpiracion > DateTime.Now);
+
+            if (usuario == null)
+            {
+                ViewBag.Error = "El enlace ha expirado o no es válido.";
+                return View("Login"); // O una vista de error
+            }
+
+            ViewBag.Token = token; // Pasamos el token a la vista para enviarlo después
+            return View();
+        }
+
+        // 4. PROCESO: Guarda la nueva clave
+        [HttpPost]
+        public IActionResult Restablecer(string token, string password, string confirmarPassword)
+        {
+            if (password != confirmarPassword)
+            {
+                ViewBag.Error = "Las contraseñas no coinciden.";
+                ViewBag.Token = token;
+                return View();
+            }
+
+            var usuario = _context.Usuarios
+                .FirstOrDefault(u => u.TokenRecuperacion == token && u.TokenExpiracion > DateTime.Now);
+
+            if (usuario != null)
+            {
+                usuario.Password = password; // Guardamos la nueva clave
+
+                // Limpiamos el token para que no se pueda usar de nuevo
+                usuario.TokenRecuperacion = null;
+                usuario.TokenExpiracion = null;
+
+                _context.SaveChanges();
+
+                ViewBag.Exito = "Contraseña actualizada. Ya puedes iniciar sesión.";
+                return View("Index"); // Volvemos al Login
+            }
+
+            ViewBag.Error = "Error al restablecer. Intenta solicitar un nuevo enlace.";
+            return View("Index");
         }
     }
 }

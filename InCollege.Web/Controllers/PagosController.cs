@@ -172,5 +172,25 @@ namespace InCollege.Web.Controllers
 
             return RedirectToAction("EstadoSituacion", new { id = contratoId });
         }
+        [HttpPost]
+        public IActionResult EliminarPago(Guid id)
+        {
+            var pago = _context.Pagos.Find(id);
+            if (pago != null)
+            {
+                // Auditoría
+                var log = AuditoriaFactory.Crear(
+                    HttpContext.Session.GetString("UsuarioNombre"),
+                    "ELIMINAR PAGO",
+                    $"Se eliminó pago de ${pago.Monto} del alumno."
+                );
+                _context.Auditorias.Add(log);
+
+                _context.Pagos.Remove(pago);
+                _context.SaveChanges();
+            }
+            // Redirige de vuelta a la matriz
+            return RedirectToAction("EstadoSituacion", new { id = pago.ContratoId });
+        }
     }
 }

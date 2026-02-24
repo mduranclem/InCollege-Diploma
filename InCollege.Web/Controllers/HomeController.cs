@@ -1,25 +1,27 @@
 using Microsoft.AspNetCore.Mvc;
-using InCollege.Datos;            // Acceso a la DB
-using InCollege.Dominio.Modelos;  // Acceso a los Modelos
-using InCollege.Dominio.Patrones; // Acceso a PrendaIndividual y Kit
+using InCollege.Datos;            // Mis accesos a la DB
+using InCollege.Dominio.Modelos;  // Mis accesos a los Modelos
+using InCollege.Dominio.Patrones; // Mis accesos a PrendaIndividual y Kit
 using System.Linq;
+using Microsoft.AspNetCore.Http;
+using System;
 
 namespace InCollege.Web.Controllers
 {
     public class HomeController : Controller
     {
-        // ESTA ES LA CONEXIÓN A SQL SERVER
+        // Mi conexión a la base de datos SQL Server
         private readonly AppDbContext _context;
 
-        // El constructor recibe la base de datos automáticamente (Inyección de Dependencias)
+        // Inyecto las dependencias en mi constructor
         public HomeController(AppDbContext context)
         {
             _context = context;
 
-            // --- SECCIÓN DE SEMILLA (SEEDING) ---
-            // Se ejecuta cada vez que se llama al controlador si los datos no existen.
+            // --- MI SECCIÓN DE SEMILLA (SEEDING) ---
+            // Ejecuto esta carga inicial de datos básicos si mis tablas están vacías.
 
-            // 1. SEMILLA DE USUARIOS (Si no existe, crea Admin)
+            // 1. Creo el usuario Administrador principal por defecto
             if (!_context.Usuarios.Any())
             {
                 Usuario superAdmin = new Usuario("Admin", "Principal", "admin@incollege.com", "admin123");
@@ -29,7 +31,7 @@ namespace InCollege.Web.Controllers
                 _context.SaveChanges();
             }
 
-            // 2. SEMILLA DE PRENDAS SUELTAS
+            // 2. Cargo mi catálogo de prendas sueltas
             if (!_context.Productos.Any())
             {
                 var p1 = new PrendaIndividual("Buzo", 45000, "Algodón Frisado");
@@ -41,17 +43,15 @@ namespace InCollege.Web.Controllers
                 _context.SaveChanges();
             }
 
-            // 3. SEMILLA DE KITS
-            // Verificamos si no hay Kits cargados.
+            // 3. Genero los Combos usando mi Patrón Composite
             if (!_context.Productos.OfType<KitComposite>().Any())
             {
-                // Buscamos las prendas base usando 'Contains' para ser más flexibles
+                // Busco las prendas base para armar mis kits
                 var buzo = _context.Productos.FirstOrDefault(p => p.Nombre.Contains("Buzo"));
                 var campera = _context.Productos.FirstOrDefault(p => p.Nombre.Contains("Campera"));
                 var remera = _context.Productos.FirstOrDefault(p => p.Nombre.Contains("Remera"));
                 var chomba = _context.Productos.FirstOrDefault(p => p.Nombre.Contains("Chomba"));
 
-                // Solo si encontramos las partes, armamos los robots (Kits)
                 if (buzo != null && campera != null && remera != null && chomba != null)
                 {
                     var kit1 = new KitComposite("COMBO 1: Buzo + Remera");
@@ -72,20 +72,16 @@ namespace InCollege.Web.Controllers
             }
         }
 
-        // --- VISTAS (PANTALLAS) ---
+        // --- MIS VISTAS (PANTALLAS PRINCIPALES) ---
 
         public IActionResult Index()
         {
-            // Si el usuario ya está logueado, redirigirlo a su panel correspondiente
+            // Verifico si el usuario ya tiene sesión activa para enviarlo a su panel
             var rol = HttpContext.Session.GetString("UsuarioRol");
 
-            // CORRECCIÓN 1: Aceptamos ambos nombres para el admin en la redirección inicial
             if (rol == "Administrador" || rol == "Admin") return RedirectToAction("PanelAdmin");
-
             if (rol == "Vendedor") return RedirectToAction("PanelVendedor");
-
-            // Redirige al nuevo controlador 'Disenos'
-            if (rol == "Diseñador" || rol == "Disenador") return RedirectToAction("Index", "Disenos");
+            if (rol == "Diseñador" || rol == "Disenador") return RedirectToAction("Panel", "Disenos");
 
             return View();
         }
@@ -95,7 +91,7 @@ namespace InCollege.Web.Controllers
             return View();
         }
 
-        // --- ACCIONES (LÓGICA) ---
+        // --- MI LÓGICA DE ACCESO ---
 
         [HttpPost]
         public IActionResult Login(string username, string password)
@@ -105,18 +101,18 @@ namespace InCollege.Web.Controllers
 
             if (usuario != null)
             {
+                // Verifico si la cuenta fue aprobada
                 if (!usuario.EstaActivo)
                 {
                     ViewBag.Error = "Acceso denegado. Tu cuenta espera aprobación.";
                     return View("Index");
                 }
 
-                // --- GUARDAR DATOS EN MEMORIA (SESSION) ---
+                // Guardo los datos del usuario en la memoria de la sesión
                 HttpContext.Session.SetString("UsuarioRol", usuario.Rol);
                 HttpContext.Session.SetString("UsuarioNombre", usuario.Nombre);
-                // ------------------------------------------
 
-                // CORRECCIÓN 2: Aceptamos ambos nombres en el Login
+                // Redirijo según el rol que detecté
                 if (usuario.Rol == "Administrador" || usuario.Rol == "Admin")
                 {
                     return RedirectToAction("PanelAdmin");
@@ -127,12 +123,10 @@ namespace InCollege.Web.Controllers
                 }
                 else if (usuario.Rol == "Diseñador" || usuario.Rol == "Disenador")
                 {
-                    // CAMBIO IMPORTANTE: Redirigir a "Panel", no a "Index"
                     return RedirectToAction("Panel", "Disenos");
                 }
                 else
                 {
-                    // Por defecto si el rol no coincide con nada conocido
                     return Content($"Hola {usuario.Nombre}. Tu rol '{usuario.Rol}' no tiene panel asignado.");
                 }
             }
@@ -146,21 +140,16 @@ namespace InCollege.Web.Controllers
         [HttpPost]
         public IActionResult RegistrarUsuario(string nombre, string apellido, string email, string password)
         {
-            // Validar si el email ya existe
+            // Valido que no haya duplicados en mi base de datos
             if (_context.Usuarios.Any(u => u.Email == email))
             {
                 ViewBag.Error = "Ese correo ya está registrado.";
                 return View("Registro");
             }
 
-            // Crear nuevo usuario
             Usuario nuevo = new Usuario(nombre, apellido, email, password);
-
-            // Como la DB obliga a tener una Zona, le ponemos una por defecto.
             nuevo.Zona = "Sin Asignar";
-
-            // Aseguramos también que nazca inactivo y sin rol definido
-            nuevo.EstaActivo = false;
+            nuevo.EstaActivo = false; // Requiere aprobación manual mía (como Admin)
             nuevo.Rol = "Sin Asignar";
 
             _context.Usuarios.Add(nuevo);
@@ -170,52 +159,62 @@ namespace InCollege.Web.Controllers
             return View("Index");
         }
 
-        // Acción para Cerrar Sesión (Conectada al botón del Layout)
         public IActionResult CerrarSesion()
         {
-            HttpContext.Session.Clear(); // Limpia la memoria
+            // Limpio la memoria
+            HttpContext.Session.Clear();
             return RedirectToAction("Index");
         }
 
-        // --- DASHBOARD DEL ADMINISTRADOR ---
+        // --- MIS DASHBOARDS ---
 
         public IActionResult PanelAdmin()
         {
             var rol = HttpContext.Session.GetString("UsuarioRol");
 
-            // CORRECCIÓN 3: Seguridad blindada para ambos nombres
-            // Si NO es Administrador Y TAMPOCO es Admin, entonces sácalo.
+            // Mi filtro de seguridad para que solo ingresen administradores
             if (rol != "Administrador" && rol != "Admin")
                 return RedirectToAction("Index");
 
-            // 1. CONTRATOS ACTIVOS (Ni Presupuesto, ni Perdidos)
-            ViewBag.TotalContratos = _context.Contratos
-                .Where(c => c.Estado != "Presupuesto" && c.Estado != "Perdido")
-                .Count();
-
-            // 2. CONTRATOS PERDIDOS
-            ViewBag.ContratosPerdidos = _context.Contratos
-                .Where(c => c.Estado == "Perdido")
-                .Count();
-
-            var contratos = _context.Contratos.OrderByDescending(c => c.FechaCreacion).ToList();
-
+            // 1. Calculo mis métricas principales para las tarjetas (KPIs)
+            ViewBag.TotalContratos = _context.Contratos.Where(c => c.Estado != "Presupuesto" && c.Estado != "Perdido").Count();
+            ViewBag.ContratosPerdidos = _context.Contratos.Where(c => c.Estado == "Perdido").Count();
             ViewBag.EnProduccion = _context.Contratos.Where(c => c.Estado == "En Producción").Count();
             ViewBag.PendientesAprobacion = _context.Usuarios.Where(u => !u.EstaActivo).Count();
             ViewBag.ListaTalleres = _context.Talleres.Where(t => t.Activo).ToList();
 
+            // 2. Preparo los datos en tiempo real para mi Gráfico de Torta (Estado Global)
+            ViewBag.CantFirmados = _context.Contratos.Count(c => c.Estado == "Firmado" || c.Estado == "En Producción" || c.Estado == "Entregado");
+            ViewBag.CantPerdidos = _context.Contratos.Count(c => c.Estado == "Perdido");
+            ViewBag.CantPresupuestos = _context.Contratos.Count(c => c.Estado == "Presupuesto");
+
+            // 3. Preparo los datos para mi Gráfico de Avance de Producción (Solo los confirmados)
+            ViewBag.CantSoloFirmados = _context.Contratos.Count(c => c.Estado == "Firmado");
+            ViewBag.CantEnProduccion = _context.Contratos.Count(c => c.Estado == "En Producción");
+            ViewBag.CantEntregados = _context.Contratos.Count(c => c.Estado == "Entregado");
+
+            // 4. Preparo los datos para mi Gráfico de Barras (Rendimiento por vendedor activo)
+            var ventasPorVendedor = _context.Contratos
+                .Where(c => c.Estado != "Perdido" && c.Estado != "Presupuesto")
+                .GroupBy(c => c.VendedorAsignado)
+                .Select(g => new { Vendedor = g.Key ?? "Sin Asignar", Cantidad = g.Count() })
+                .ToList();
+
+            // Paso las listas separadas para que Chart.js las lea fácilmente en mi vista
+            ViewBag.NombresVendedores = ventasPorVendedor.Select(v => v.Vendedor).ToList();
+            ViewBag.CantidadesVentas = ventasPorVendedor.Select(v => v.Cantidad).ToList();
+
+            // Cargo la lista de contratos para mi tabla inferior
+            var contratos = _context.Contratos.OrderByDescending(c => c.FechaCreacion).ToList();
+
             return View(contratos);
         }
 
-        // --- DASHBOARD DEL VENDEDOR ---
-
         public IActionResult PanelVendedor()
         {
-            // Seguridad básica: Verificar Rol
             if (HttpContext.Session.GetString("UsuarioRol") != "Vendedor")
                 return RedirectToAction("Index");
 
-            // Cargar datos para el vendedor (Contratos recientes)
             var contratos = _context.Contratos
                 .OrderByDescending(c => c.FechaCreacion)
                 .Take(10)
@@ -225,36 +224,30 @@ namespace InCollege.Web.Controllers
 
             return View(contratos);
         }
+
         // ==========================================
-        // RECUPERAR CONTRASEÑA
+        // MI RECUPERACIÓN DE CONTRASEÑA
         // ==========================================
 
-        // 1. VISTA: Pide el email
         public IActionResult OlvidePassword()
         {
             return View();
         }
 
-        // 2. PROCESO: Genera token y envía mail
         [HttpPost]
         public IActionResult OlvidePassword(string email)
         {
             var usuario = _context.Usuarios.FirstOrDefault(u => u.Email == email);
 
-            // Por seguridad, no decimos si el email existe o no, pero aquí actuamos si existe.
             if (usuario != null)
             {
-                // Generar Token único y fecha de expiración (1 hora)
                 string token = Guid.NewGuid().ToString();
                 usuario.TokenRecuperacion = token;
                 usuario.TokenExpiracion = DateTime.Now.AddHours(1);
                 _context.SaveChanges();
 
-                // Crear el link de recuperación
-                // Esto genera algo como: https://localhost:7048/Home/Restablecer?token=abc-123...
                 var link = Url.Action("Restablecer", "Home", new { token = token }, Request.Scheme);
 
-                // Enviar Email
                 string asunto = "Recuperar Contraseña - InCollege";
                 string cuerpo = $@"
                     <h2>Hola {usuario.Nombre},</h2>
@@ -265,7 +258,6 @@ namespace InCollege.Web.Controllers
 
                 try
                 {
-                    // Usamos tu servicio de Email existente (asegúrate de tener el using InCollege.Dominio.Servicios;)
                     InCollege.Dominio.Servicios.EmailService.Enviar(usuario.Email, asunto, cuerpo);
                 }
                 catch (Exception ex)
@@ -279,24 +271,21 @@ namespace InCollege.Web.Controllers
             return View();
         }
 
-        // 3. VISTA: Formulario para poner la nueva clave (Valida el token)
         public IActionResult Restablecer(string token)
         {
-            // Buscar usuario con ese token y que no haya expirado
             var usuario = _context.Usuarios
                 .FirstOrDefault(u => u.TokenRecuperacion == token && u.TokenExpiracion > DateTime.Now);
 
             if (usuario == null)
             {
                 ViewBag.Error = "El enlace ha expirado o no es válido.";
-                return View("Login"); // O una vista de error
+                return View("Login");
             }
 
-            ViewBag.Token = token; // Pasamos el token a la vista para enviarlo después
+            ViewBag.Token = token;
             return View();
         }
 
-        // 4. PROCESO: Guarda la nueva clave
         [HttpPost]
         public IActionResult Restablecer(string token, string password, string confirmarPassword)
         {
@@ -312,16 +301,14 @@ namespace InCollege.Web.Controllers
 
             if (usuario != null)
             {
-                usuario.Password = password; // Guardamos la nueva clave
-
-                // Limpiamos el token para que no se pueda usar de nuevo
+                usuario.Password = password;
                 usuario.TokenRecuperacion = null;
                 usuario.TokenExpiracion = null;
 
                 _context.SaveChanges();
 
                 ViewBag.Exito = "Contraseña actualizada. Ya puedes iniciar sesión.";
-                return View("Index"); // Volvemos al Login
+                return View("Index");
             }
 
             ViewBag.Error = "Error al restablecer. Intenta solicitar un nuevo enlace.";

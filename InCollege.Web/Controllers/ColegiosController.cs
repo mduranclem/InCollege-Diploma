@@ -3,6 +3,7 @@ using InCollege.Dominio.Modelos;
 using InCollege.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace InCollege.Web.Controllers
 {
@@ -15,13 +16,27 @@ namespace InCollege.Web.Controllers
             _context = context;
         }
 
-        // GET: /Colegios/Index -> Muestra la lista
-        public IActionResult Index()
+        // GET: /Colegios/Index -> Muestra la lista de instituciones
+        public IActionResult Index(string busqueda)
         {
-            var colegios = _context.Colegios.ToList();
+            // 1. Preparo la consulta base
+            var query = _context.Colegios.AsQueryable();
+
+            // 2. Si escribí algo en el buscador, aplico mi filtro por nombre
+            if (!string.IsNullOrEmpty(busqueda))
+            {
+                query = query.Where(c => c.Nombre.Contains(busqueda));
+            }
+
+            // 3. Guardo la palabra buscada para no perderla en la vista al recargar
+            ViewData["BusquedaActual"] = busqueda;
+
+            // 4. Ejecuto la consulta con los filtros (si los hubo)
+            var colegios = query.ToList();
+
             var listaVisual = new List<EscuelaViewModel>();
 
-            // Traemos todos los contratos de una sola vez para no hacer mil consultas
+            // Traigo todos los contratos de una sola vez para no hacer mil consultas a la DB en el foreach
             var todosLosContratos = _context.Contratos.ToList();
 
             foreach (var col in colegios)
@@ -39,13 +54,12 @@ namespace InCollege.Web.Controllers
                     Email = col.Email,
                 };
 
-                // --- LÓGICA DE ESTADO DEL CLIENTE ---
+                // --- MI LÓGICA DE ESTADO DEL CLIENTE ---
                 if (contratosDelColegio.Any(c => c.Estado == "Firmado" || c.Estado == "En Producción" || c.Estado == "Entregado"))
                 {
-                    // Si tiene AL MENOS UN contrato vigente, es un cliente activo (aunque tenga otros perdidos)
+                    // Si tiene AL MENOS UN contrato vigente, es un cliente activo
                     item.EstadoActual = "Firmado";
-
-                    // Mostramos el vendedor de ese contrato activo
+                    // Muestro el vendedor de ese contrato activo
                     item.Vendedor = contratosDelColegio.First(c => c.Estado == "Firmado" || c.Estado == "En Producción").VendedorAsignado;
                 }
                 else if (contratosDelColegio.Any(c => c.Estado == "Presupuesto"))
@@ -56,13 +70,13 @@ namespace InCollege.Web.Controllers
                 }
                 else if (contratosDelColegio.Any(c => c.Estado == "Perdido"))
                 {
-                    // Si todo lo que tiene es histórico perdido (Ideal para volver a llamar)
+                    // Si todo lo que tiene es histórico perdido (Ideal para que mis vendedores vuelvan a llamar)
                     item.EstadoActual = "Perdido";
                     item.Vendedor = "-";
                 }
                 else
                 {
-                    // Escuela cargada sin contratos aún
+                    // Escuela recién cargada, sin contratos aún
                     item.EstadoActual = "Nuevo";
                     item.Vendedor = "-";
                 }
@@ -73,36 +87,34 @@ namespace InCollege.Web.Controllers
             return View(listaVisual);
         }
 
-        // GET: /Colegios/Crear -> Muestra el formulario
+        // GET: /Colegios/Crear -> Muestra mi formulario vacío
         public IActionResult Crear()
         {
             return View();
         }
 
-        // POST: Recibe los datos del formulario
-        // POST: /Colegios/Crear
+        // POST: Recibe los datos de mi formulario de creación
         [HttpPost]
         public IActionResult Crear(Colegio colegio)
         {
-            // --- 1. PARCHE PARA CAMPOS OPCIONALES ---
-            // Si el usuario no escribe dirección, le ponemos un guion "-"
-            // para que la Base de Datos no explote.
+            // --- 1. MI PARCHE PARA CAMPOS OPCIONALES ---
+            // Si no escribo dirección, le pongo un guion "-" para que la DB no falle
             if (string.IsNullOrEmpty(colegio.Direccion)) colegio.Direccion = "-";
 
-            // Lo mismo para otros campos que quieras opcionales:
+            // Lo mismo para mis otros campos opcionales:
             if (string.IsNullOrEmpty(colegio.Ciudad)) colegio.Ciudad = "-";
             if (string.IsNullOrEmpty(colegio.Telefono)) colegio.Telefono = "-";
             if (string.IsNullOrEmpty(colegio.Email)) colegio.Email = "-";
 
             // --- 2. QUITAR ERRORES DE VALIDACIÓN ---
-            // Le decimos a C#: "Ignora si estos campos están vacíos"
+            // Le digo a mi modelo: "Ignora si estos campos están vacíos"
             ModelState.Remove("Direccion");
             ModelState.Remove("Ciudad");
             ModelState.Remove("Telefono");
             ModelState.Remove("Email");
-            ModelState.Remove("VendedorResponsable"); // Este se calcula solo
+            ModelState.Remove("VendedorResponsable"); // Lo calculo yo más abajo
 
-            // --- 3. LÓGICA DE ZONAS (Tu código existente) ---
+            // --- 3. MI LÓGICA DE ZONAS PARA ASIGNAR VENDEDORES ---
             if (!string.IsNullOrEmpty(colegio.Zona))
             {
                 var vendedorZona = _context.Usuarios
@@ -122,7 +134,7 @@ namespace InCollege.Web.Controllers
                 colegio.VendedorResponsable = "Sin Asignar";
             }
 
-            // --- 4. GUARDAR ---
+            // --- 4. GUARDAR EN MI BASE DE DATOS ---
             if (ModelState.IsValid)
             {
                 _context.Colegios.Add(colegio);
@@ -132,6 +144,7 @@ namespace InCollege.Web.Controllers
 
             return View(colegio);
         }
+
         // GET: /Colegios/Editar/5
         public IActionResult Editar(Guid id)
         {

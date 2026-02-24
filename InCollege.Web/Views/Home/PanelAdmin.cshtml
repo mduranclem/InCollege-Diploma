@@ -1,4 +1,5 @@
 ﻿@using InCollege.Dominio.Modelos
+@using Microsoft.AspNetCore.Http
 @model IEnumerable<Contrato>
 
 @{
@@ -17,7 +18,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
     <style>
-        /* VARIABLES */
+        /* MIS VARIABLES */
         :root {
             --brand-green: #1e6f42;
             --brand-green-hover: #145230;
@@ -37,7 +38,7 @@
             padding: 0;
         }
 
-        /* CONTENEDOR */
+        /* MI CONTENEDOR PRINCIPAL */
         .dashboard-wrapper {
             width: 90%;
             max-width: 1400px;
@@ -46,7 +47,7 @@
             padding-bottom: 40px;
         }
 
-        /* TARJETAS */
+        /* MI DISEÑO DE TARJETAS OSCURAS */
         .card-dark {
             background-color: var(--card-bg);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -55,7 +56,7 @@
             border-radius: 8px;
         }
 
-        /* HEADER */
+        /* MI HEADER SUPERIOR */
         .top-header {
             padding: 12px 20px;
             margin-bottom: 20px;
@@ -93,7 +94,7 @@
                 color: white;
             }
 
-        /* KPIs */
+        /* MIS INDICADORES (KPIs) */
         .kpi-box {
             background-color: rgba(25, 25, 25, 0.95);
             border: 1px solid #444;
@@ -137,7 +138,7 @@
             opacity: 0.15;
         }
 
-        /* BOTONES DE ACCIÓN */
+        /* MIS BOTONES DEL MENÚ DE ACCIONES */
         .section-header {
             padding: 10px 15px;
             border-bottom: 1px solid #333;
@@ -194,7 +195,7 @@
             color: #0d6efd;
         }
 
-        /* TABLA */
+        /* MIS ESTILOS DE LA TABLA */
         .table-wrapper-dark {
             background-color: var(--card-bg);
         }
@@ -227,7 +228,6 @@
             border-radius: 3px;
         }
 
-        /* Botones de tabla */
         .action-icon-btn {
             background-color: transparent;
             border: 1px solid #555;
@@ -274,7 +274,7 @@
 
         <div class="d-flex justify-content-between align-items-center top-header card-dark">
             <div style="border-left: 5px solid #198754; padding-left: 15px;">
-                <h1 class="main-title">PORTAL DE VENTAS</h1>
+                <h1 class="main-title">PORTAL DE ADMIN</h1>
                 <p class="sub-title">Bienvenido al sistema.</p>
             </div>
             <div class="d-flex gap-2">
@@ -394,6 +394,37 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+
+            <div class="col-lg-4">
+                <div class="card-dark h-100 p-3">
+                    <h5 class="text-white text-center mb-3" style="font-size: 0.9rem; font-weight: bold; letter-spacing: 1px;">ESTADO DE CONTRATOS</h5>
+                    <div style="position: relative; height: 250px; width: 100%;">
+                        <canvas id="graficoTorta"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card-dark h-100 p-3">
+                    <h5 class="text-white text-center mb-3" style="font-size: 0.9rem; font-weight: bold; letter-spacing: 1px;">AVANCE DE PRODUCCIÓN</h5>
+                    <div style="position: relative; height: 250px; width: 100%;">
+                        <canvas id="graficoProduccion"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card-dark h-100 p-3">
+                    <h5 class="text-white text-center mb-3" style="font-size: 0.9rem; font-weight: bold; letter-spacing: 1px;">RENDIMIENTO VENDEDORES</h5>
+                    <div style="position: relative; height: 250px; width: 100%;">
+                        <canvas id="graficoBarras"></canvas>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <div class="card-dark mb-4">
@@ -575,5 +606,104 @@
     }
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        // Configuro colores generales para que encajen con mi tema oscuro
+        Chart.defaults.color = '#aaaaaa';
+        Chart.defaults.font.family = "'Segoe UI', sans-serif";
+
+        // --- 1. MI GRÁFICO DE TORTA (ESTADO DE CONTRATOS) ---
+        const ctxTorta = document.getElementById('graficoTorta').getContext('2d');
+        const graficoTorta = new Chart(ctxTorta, {
+            type: 'doughnut',
+            data: {
+                labels: ['Firmados/Activos', 'Perdidos', 'En Presupuesto'],
+                datasets: [{
+                    // Los datos los traigo inyectados directo del Controlador por ViewBag
+                    data: [@ViewBag.CantFirmados, @ViewBag.CantPerdidos, @ViewBag.CantPresupuestos],
+                    backgroundColor: [
+                        '#198754', // Verde oscuro para confirmados
+                        '#dc3545', // Rojo para perdidos
+                        '#6c757d'  // Gris para en evaluación
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        // --- 2. MI NUEVO GRÁFICO DE TORTA (AVANCE DE PRODUCCIÓN) ---
+        const ctxProduccion = document.getElementById('graficoProduccion').getContext('2d');
+        const graficoProduccion = new Chart(ctxProduccion, {
+            type: 'doughnut',
+            data: {
+                labels: ['En Espera', 'En Producción', 'Entregados'],
+                datasets: [{
+                    // Obtengo las cantidades que calculé en mi controlador
+                    data: [@ViewBag.CantSoloFirmados, @ViewBag.CantEnProduccion, @ViewBag.CantEntregados],
+                    backgroundColor: [
+                        '#ffc107', // Amarillo: Esperando entrar a taller
+                        '#0dcaf0', // Celeste: Ya está en producción
+                        '#198754'  //  Verde institucional para Entregados
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        // --- 3. MI GRÁFICO DE BARRAS (RENDIMIENTO DE VENDEDORES) ---
+        // Convierto mis listas de C# a arrays de JavaScript para el gráfico
+        const nombresVendedores = @Html.Raw(Json.Serialize(ViewBag.NombresVendedores));
+        const cantidadesVentas = @Html.Raw(Json.Serialize(ViewBag.CantidadesVentas));
+
+        const ctxBarras = document.getElementById('graficoBarras').getContext('2d');
+        const graficoBarras = new Chart(ctxBarras, {
+            type: 'bar',
+            data: {
+                labels: nombresVendedores,
+                datasets: [{
+                    label: 'Contratos Cerrados',
+                    data: cantidadesVentas,
+                    backgroundColor: 'rgba(30, 111, 66, 0.8)', // Mi verde institucional
+                    borderColor: '#1e6f42',
+                    borderWidth: 1,
+                    borderRadius: 5 // Suavizo un poco las barras
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false } // Saco la leyenda para dejarlo más limpio
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 },
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    </script>
 </body>
 </html>

@@ -4,14 +4,12 @@
 
 @{
     ViewData["Title"] = "Cartera de Clientes";
-    Layout = null; // Usamos el layout propio
+    Layout = null; // Uso mi layout sin cabeceras externas
 
-    // Lógica para el botón volver según el rol
-    // Lógica para el botón volver según el rol
+    // Lógica para que el botón volver funcione bien según el rol
     string rolUsuario = Context.Session.GetString("UsuarioRol");
 
-    // CORRECCIÓN: Ahora el diseñador vuelve a /Disenos/Panel
-    string linkVolver = "/Home/Index"; // Default Admin
+    string linkVolver = "/Home/Index"; // Por defecto voy al Admin
     if (rolUsuario == "Disenador" || rolUsuario == "Diseñador")
     {
         linkVolver = "/Disenos/Panel";
@@ -54,7 +52,7 @@
             box-shadow: 0 10px 40px rgba(0,0,0,0.8);
         }
 
-        /* Tabla */
+        /* Mi tabla de datos */
         .table-massive {
             width: 100%;
             border-collapse: collapse;
@@ -82,7 +80,7 @@
                 background-color: rgba(255, 255, 255, 0.05);
             }
 
-        /* Botones */
+        /* Mis Botones */
         .btn-new {
             background-color: #1e6f42;
             color: white;
@@ -148,6 +146,26 @@
         </div>
 
         <div class="header-card">
+
+            <div class="mb-4 d-flex justify-content-start">
+                <form asp-controller="Colegios" asp-action="Index" method="get" class="d-flex gap-2 w-100" style="max-width: 500px;">
+
+                    <input type="text" name="busqueda" value="@ViewData["BusquedaActual"]"
+                           class="form-control bg-dark text-white border-secondary"
+                           placeholder="Buscar institución por nombre..." autocomplete="off">
+
+                    <button type="submit" class="btn btn-success fw-bold px-4">
+                        <i class="bi bi-search"></i> BUSCAR
+                    </button>
+
+                    @if (!string.IsNullOrEmpty(ViewData["BusquedaActual"]?.ToString()))
+                    {
+                        <a asp-controller="Colegios" asp-action="Index" class="btn btn-outline-secondary d-flex align-items-center" title="Limpiar filtro">
+                            <i class="bi bi-x-lg"></i>
+                        </a>
+                    }
+                </form>
+            </div>
             <div class="table-responsive">
                 <table class="table-massive">
                     <thead>
@@ -165,7 +183,7 @@
                             <tr>
                                 <td colspan="5" class="text-center py-5 text-secondary">
                                     <i class="bi bi-building-slash display-1 opacity-25"></i>
-                                    <p class="mt-3 fs-4">No hay escuelas registradas.</p>
+                                    <p class="mt-3 fs-4">No hay escuelas que coincidan con la búsqueda.</p>
                                 </td>
                             </tr>
                         }
@@ -216,7 +234,7 @@
                                                 <i class="bi bi-pencil"></i>
                                             </a>
 
-                                            <form action="/Colegios/Eliminar" method="post" style="display:inline;" onsubmit="return confirm('¿Eliminar esta escuela? Se borrarán sus contratos.');">
+                                            <form action="/Colegios/Eliminar" method="post" style="display:inline;" onsubmit="return confirm('¿Seguro? ¿Eliminar esta escuela? Se borrarán sus contratos.');">
                                                 <input type="hidden" name="id" value="@item.Id" />
                                                 <button type="submit" class="btn btn-outline-danger btn-sm" title="Eliminar">
                                                     <i class="bi bi-trash"></i>
